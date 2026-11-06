@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Old Bar & Wallabi Point — Route Tool & Tub Sorter (Sec 1–12)</title>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+  :root {
+    --primary: #0f172a;
+    --primary-accent: #2563eb;
+    --bg: #f1f5f9;
+    --card: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --border: #cbd5e1;
+    --back-color: #dc2626;
+    --back-bg: #fef2f2;
+    --front-color: #d97706;
+    --front-bg: #fffbeb;
+    --tub-color: #059669;
+    --tub-bg: #ecfdf5;
+    --highlight-bg: #eff6ff;
+    --highlight-border: #3b82f6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+  body { background: var(--bg); color: var(--text); padding: 12px; line-height: 1.45; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  
+  header { margin-bottom: 12px; text-align: center; }
+  h1 { font-size: 1.35rem; font-weight: 800; color: var(--primary); margin-bottom: 2px; }
+  p.subtitle { color: var(--muted); font-size: 0.82rem; }
+
+  /* Top Mode Switcher Tabs */
+  .mode-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #e2e8f0; padding: 5px; border-radius: 12px; margin-bottom: 16px; }
+  .mode-tab { padding: 11px 10px; border: none; border-radius: 9px; font-size: 0.92rem; font-weight: 700; cursor: pointer; background: transparent; color: var(--muted); transition: all 0.15s; text-align: center; }
+  .mode-tab.active { background: var(--card); color: var(--primary-accent); box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); margin-bottom: 16px; }
+  .card h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; color: var(--primary); }
+
+  /* Quick Tub Lookup Specific Styles */
+  .lookup-search-box { position: relative; margin-bottom: 14px; }
+  .lookup-input-wrap { display: flex; gap: 8px; }
+  .lookup-input { width: 100%; padding: 14px 16px; font-size: 1.05rem; font-weight: 600; border: 2px solid var(--primary-accent); border-radius: 10px; outline: none; background: #fff; color: var(--primary); box-shadow: 0 2px 8px rgba(37,99,235,0.1); }
+  .lookup-clear-btn { padding: 0 16px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 10px; font-weight: 700; color: var(--muted); cursor: pointer; font-size: 1rem; }
+
+  /* Target Banner */
+  .target-banner { background: var(--primary); color: white; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; display: none; }
+  .target-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .target-sec-badge { background: var(--primary-accent); color: white; padding: 3px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; }
+  .target-dir-badge { background: rgba(255,255,255,0.15); color: #f8fafc; padding: 3px 9px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+  .target-addr-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 4px; color: #fff; }
+  .target-Rule-desc { font-size: 0.84rem; color: #cbd5e1; }
+
+  /* Before / Current / After Cards */
+  .neighbors-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; display: none; }
+  @media (max-width: 600px) { .neighbors-grid { grid-template-columns: 1fr; } }
+  .neighbor-box { border: 1px solid var(--border); border-radius: 10px; padding: 12px; background: #f8fafc; }
+  .neighbor-box.before-box { border-left: 4px solid #f59e0b; }
+  .neighbor-box.after-box { border-left: 4px solid #10b981; }
+  .neighbor-hdr { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
+  .before-box .neighbor-hdr { color: #b45309; }
+  .after-box .neighbor-hdr { color: #047857; }
+  .neighbor-list { list-style: none; font-size: 0.88rem; }
+  .neighbor-list li { padding: 5px 0; border-bottom: 1px dashed #e2e8f0; display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
+  .neighbor-list li:last-child { border-bottom: none; }
+  .neighbor-hint { font-size: 0.74rem; color: var(--muted); font-weight: 500; }
+
+  /* Full Section Ladder */
+  .sec-pills { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; -webkit-overflow-scrolling: touch; }
+  .sec-pill { padding: 7px 13px; border-radius: 20px; border: 1px solid var(--border); background: white; font-size: 0.8rem; font-weight: 700; color: var(--text); cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+  .sec-pill.active { background: var(--primary-accent); color: white; border-color: var(--primary-accent); }
+
+  .ladder-list { list-style: none; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .ladder-item { padding: 10px 12px; border-bottom: 1px solid var(--border); background: white; display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 0.88rem; }
+  .ladder-item:last-child { border-bottom: none; }
+  .ladder-item.active-stop { background: var(--highlight-bg); border-left: 5px solid var(--highlight-border); font-weight: 700; }
+  .ladder-item.before-stop { background: #fffbeb; }
+  .ladder-item.after-stop { background: #ecfdf5; }
+  .ladder-step { width: 24px; height: 24px; border-radius: 50%; background: #e2e8f0; color: var(--text); font-size: 0.75rem; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .active-stop .ladder-step { background: var(--primary-accent); color: white; }
+  .ladder-main { flex: 1; }
+  .ladder-name { font-weight: 700; color: var(--primary); }
+  .ladder-note { font-size: 0.75rem; color: var(--muted); }
+  .ladder-dir { font-size: 0.72rem; font-weight: 700; padding: 3px 7px; border-radius: 4px; background: #f1f5f9; color: var(--muted); white-space: nowrap; }
+  .dir-asc { background: #e0f2fe; color: #0369a1; }
+  .dir-desc { background: #fae8ff; color: #a21caf; }
+
+  /* Autocomplete Dropdown */
+  .autocomplete-suggestions {
+    position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px;
+    background: white; border: 1px solid var(--border); border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15); z-index: 100; max-height: 240px;
+    overflow-y: auto; list-style: none; display: none;
+  }
+  .autocomplete-item { padding: 11px 14px; font-size: 0.92rem; cursor: pointer; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+  .autocomplete-item:hover, .autocomplete-item:active { background: #eff6ff; color: var(--primary-accent); }
+  .autocomplete-sec { font-size: 0.75rem; font-weight: 700; color: var(--muted); background: #f1f5f9; padding: 2px 7px; border-radius: 4px; }
+
+  /* Sequencer View Layout */
+  .layout-grid { display: grid; grid-template-columns: 380px 1fr; gap: 16px; }
+  @media (max-width: 850px) { .layout-grid { grid-template-columns: 1fr; } }
+  .quick-add-form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px dashed var(--border); position: relative; }
+  .input-row { display: flex; gap: 8px; position: relative; }
+  input.seq-input { flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; }
+  input.seq-input:focus { border-color: var(--primary-accent); }
+  .loc-selector { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .loc-radio input { display: none; }
+  .loc-radio label { display: block; text-align: center; padding: 9px 4px; font-size: 0.8rem; font-weight: 700; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; color: var(--muted); background: #f8fafc; }
+  .loc-radio input:checked + label.lbl-tub { background: var(--tub-bg); color: var(--tub-color); border-color: var(--tub-color); }
+  .loc-radio input:checked + label.lbl-front { background: var(--front-bg); color: var(--front-color); border-color: var(--front-color); }
+  .loc-radio input:checked + label.lbl-back { background: var(--back-bg); color: var(--back-color); border-color: var(--back-color); }
+
+  textarea { width: 100%; height: 140px; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.85rem; resize: vertical; outline: none; margin-top: 6px; }
+  .btn-group { display: flex; gap: 8px; margin-top: 10px; }
+  button.btn { padding: 10px 14px; border-radius: 8px; border: none; font-size: 0.88rem; font-weight: 700; cursor: pointer; }
+  button.primary { background: var(--primary-accent); color: white; flex: 1; }
+  button.secondary { background: #e2e8f0; color: var(--text); }
+
+  .stats-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+  .stat-card { border-radius: 8px; padding: 8px; text-align: center; border: 1px solid var(--border); }
+  .stat-card.tub { background: var(--tub-bg); border-color: #a7f3d0; color: var(--tub-color); }
+  .stat-card.front { background: var(--front-bg); border-color: #fde68a; color: var(--front-color); }
+  .stat-card.back { background: var(--back-bg); border-color: #fecaca; color: var(--back-color); }
+  .stat-val { font-size: 1.15rem; font-weight: 800; }
+  .stat-lbl { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; }
+
+  .view-filters { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 12px; padding-bottom: 4px; }
+  .filter-btn { padding: 6px 11px; border-radius: 20px; border: 1px solid var(--border); font-size: 0.75rem; font-weight: 700; background: white; cursor: pointer; color: var(--muted); white-space: nowrap; }
+  .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+  .item-list { list-style: none; max-height: 540px; overflow-y: auto; }
+  .delivery-row { display: flex; align-items: center; justify-content: space-between; padding: 10px; background: white; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; gap: 8px; }
+  .row-main { display: flex; align-items: center; gap: 10px; flex: 1; }
+  .seq-num { background: var(--primary); color: white; width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800; flex-shrink: 0; }
+  .addr-title { font-size: 0.92rem; font-weight: 700; color: var(--text); }
+  .addr-sub { font-size: 0.74rem; color: var(--muted); }
+  .actions-wrapper { display: flex; gap: 5px; align-items: center; }
+  .badge-loc { font-size: 0.7rem; font-weight: 800; padding: 4px 8px; border-radius: 5px; text-transform: uppercase; cursor: pointer; user-select: none; }
+  .badge-tub { background: var(--tub-bg); color: var(--tub-color); border: 1px solid #a7f3d0; }
+  .badge-front { background: var(--front-bg); color: var(--front-color); border: 1px solid #fde68a; }
+  .badge-back { background: var(--back-bg); color: var(--back-color); border: 1px solid #fecaca; }
+  .icon-btn { background: #f8fafc; border: 1px solid var(--border); padding: 4px 7px; font-size: 0.8rem; border-radius: 5px; cursor: pointer; }
+  .empty-state { text-align: center; color: var(--muted); padding: 24px; font-size: 0.88rem; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Old Bar & Wallabi Point Route Assistant</h1>
+    <p class="subtitle">Mobile Tub Sorter & Depots Sorter (Sections 1–12)</p>
+  </header>
+
+  <!-- Mode Switcher -->
+  <div class="mode-tabs">
+    <button class="mode-tab active" id="tabLookup" onclick="switchMode('lookup')">🔍 Quick Tub Sorter (Before/After)</button>
+    <button class="mode-tab" id="tabSequencer" onclick="switchMode('sequencer')">📋 Full Manifest Sequencer</button>
+  </div>
+
+  <!-- VIEW 1: QUICK TUB SORTER (BEFORE / AFTER) -->
+  <div id="viewLookup">
+    <div class="card">
+      <h2>
+        <span>Where Does This Parcel Sit in the Tub?</span>
+      </h2>
+      <div class="lookup-search-box">
+        <div class="lookup-input-wrap">
+          <input type="text" id="lookupInput" class="lookup-input" placeholder="Type address (e.g. 119 Forest Ln, 62 Waterman...)" autocomplete="off">
+          <button class="lookup-clear-btn" onclick="clearLookup()" title="Clear">✕</button>
+        </div>
+        <ul class="autocomplete-suggestions" id="lookupSuggestList"></ul>
+      </div>
+
+      <!-- Result Banner -->
+      <div id="targetBanner" class="target-banner">
+        <div class="target-top">
+          <span class="target-sec-badge" id="resSectionBadge">SECTION 6</span>
+          <span class="target-dir-badge" id="resDirBadge">Numbers Run: Low → High</span>
+        </div>
+        <div class="target-addr-title" id="resAddrTitle">62 Waterman St</div>
+        <div class="target-Rule-desc" id="resRuleDesc">Sits at the end of Section 6 (heading toward Old Bar Bakery).</div>
+      </div>
+
+      <!-- Immediate Before / After Comparison -->
+      <div id="neighborsGrid" class="neighbors-grid">
+        <div class="neighbor-box before-box">
+          <div class="neighbor-hdr">⬆️ GOES BEFORE THIS PARCEL (In Front)</div>
+          <ul class="neighbor-list" id="beforeList"></ul>
+        </div>
+        <div class="neighbor-box after-box">
+          <div class="neighbor-hdr">⬇️ GOES AFTER THIS PARCEL (Behind)</div>
+          <ul class="neighbor-list" id="afterList"></ul>
+        </div>
+      </div>
+
+      <!-- Browse Section Order -->
+      <div>
+        <div style="font-size: 0.78rem; font-weight: 700; color: var(--muted); margin-bottom: 6px; text-transform: uppercase;">
+          Full Section Street Order (Tap a section to view):
+        </div>
+        <div class="sec-pills" id="secPills">
+          <button class="sec-pill active" onclick="renderSectionLadder(1)">Sec 1: Wallabi Pt</button>
+          <button class="sec-pill" onclick="renderSectionLadder(2)">Sec 2: Shantull</button>
+          <button class="sec-pill" onclick="renderSectionLadder(3)">Sec 3: Medowie</button>
+          <button class="sec-pill" onclick="renderSectionLadder(4)">Sec 4: Marra Estate</button>
+          <button class="sec-pill" onclick="renderSectionLadder(5)">Sec 5: Molong</button>
+          <button class="sec-pill" onclick="renderSectionLadder(6)">Sec 6: Waterman</button>
+          <button class="sec-pill" onclick="renderSectionLadder(7)">Sec 7: Old Bar Rd</button>
+          <button class="sec-pill" onclick="renderSectionLadder(8)">Sec 8: Clerke/Hall</button>
+          <button class="sec-pill" onclick="renderSectionLadder(9)">Sec 9: Forest/Wyden</button>
+          <button class="sec-pill" onclick="renderSectionLadder(10)">Sec 10: Albatross</button>
+          <button class="sec-pill" onclick="renderSectionLadder(11)">Sec 11: Bluehaven 2</button>
+          <button class="sec-pill" onclick="renderSectionLadder(12)">Sec 12: Wyden</button>
+        </div>
+        <ul class="ladder-list" id="ladderList"></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 2: FULL MANIFEST SEQUENCER -->
+  <div id="viewSequencer" style="display: none;">
+    <div class="layout-grid">
+      <div class="card">
+        <h2>Add Parcels to Manifest</h2>
+        <div class="quick-add-form">
+          <div class="input-row">
+            <input type="text" id="quickInput" class="seq-input" placeholder="Type number + street (e.g. 119 Forest Ln...)" autocomplete="off">
+            <button type="button" class="btn secondary" style="flex:0; padding: 0 14px; font-size: 1.1rem;" onclick="startCameraScanner()" title="Scan label with camera">📷</button>
+            <button class="btn primary" style="flex:0; padding: 0 16px;" onclick="addSingleParcel()">Add</button>
+            <ul class="autocomplete-suggestions" id="autoSuggestList"></ul>
+          </div>
+          <div class="loc-selector">
+            <div class="loc-radio">
+              <input type="radio" name="quickLoc" id="locTub" value="tub" checked>
+              <label for="locTub" class="lbl-tub">🧺 Tub (Flat)</label>
+            </div>
+            <div class="loc-radio">
+              <input type="radio" name="quickLoc" id="locFront" value="front">
+              <label for="locFront" class="lbl-front">📦 Front Seat</label>
+            </div>
+            <div class="loc-radio">
+              <input type="radio" name="quickLoc" id="locBack" value="back">
+              <label for="locBack" class="lbl-back">🚛 Back (Large)</label>
+            </div>
+          </div>
+        </div>
+
+        <details class="bulk-box" open>
+          <summary style="font-size:0.85rem; font-weight:700; color:var(--muted); cursor:pointer;">Bulk Paste / Import List</summary>
+          <textarea id="bulkText" placeholder="271 Saltwater Rd tub&#10;119 Forest Ln back&#10;62 Waterman St front"></textarea>
+          <div class="btn-group">
+            <button class="btn primary" onclick="loadBulkData()">Sequence All</button>
+            <button class="btn secondary" onclick="clearAll()">Reset</button>
+          </div>
+        </details>
+      </div>
+
+      <div class="card">
+        <h2>
+          <span>Manifest & Drop Sequence</span>
+          <button class="btn secondary" style="font-size: 0.75rem; padding: 5px 10px;" onclick="copyManifest()">Copy List</button>
+        </h2>
+
+        <div class="stats-summary">
+          <div class="stat-card tub">
+            <div class="stat-val" id="countTub">0</div>
+            <div class="stat-lbl">🧺 Tub</div>
+          </div>
+          <div class="stat-card front">
+            <div class="stat-val" id="countFront">0</div>
+            <div class="stat-lbl">📦 Front Seat</div>
+          </div>
+          <div class="stat-card back">
+            <div class="stat-val" id="countBack">0</div>
+            <div class="stat-lbl">🚛 Back</div>
+          </div>
+        </div>
+
+        <div class="view-filters">
+          <button class="filter-btn active" onclick="setFilter('all', this)">All Stops</button>
+          <button class="filter-btn" onclick="setFilter('tub', this)">Tub Only</button>
+          <button class="filter-btn" onclick="setFilter('front', this)">Front Seat Only</button>
+          <button class="filter-btn" onclick="setFilter('back', this)">Back Only</button>
+        </div>
+
+        <ul class="item-list" id="deliveryList">
+          <div class="empty-state">No parcels added yet.</div>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- CAMERA SCANNER MODAL -->
+  <div id="scannerModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:999; flex-direction:column; align-items:center; justify-content:center; padding:16px;">
+    <div style="width:100%; max-width:440px; background:#fff; border-radius:16px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 10px 25px rgba(0,0,0,0.5);">
+      <div style="padding:12px 16px; background:#0f172a; color:#fff; display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-weight:700; font-size:0.95rem;">📷 Align Delivery Address</span>
+        <button onclick="stopCameraScanner()" style="background:transparent; border:none; color:#94a3b8; font-size:1.3rem; cursor:pointer;">✕</button>
+      </div>
+
+      <div style="position:relative; width:100%; height:260px; background:#000; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+        <video id="cameraFeed" playsinline autoplay muted style="width:100%; height:100%; object-fit:cover;"></video>
+        <div id="reticleBox" style="position:absolute; width:80%; height:90px; border:2px dashed #22c55e; border-radius:8px; box-shadow:0 0 0 9999px rgba(0,0,0,0.45); pointer-events:none; display:flex; align-items:center; justify-content:center;">
+          <span style="color:#22c55e; font-size:0.75rem; font-weight:700; background:rgba(0,0,0,0.6); padding:2px 8px; border-radius:4px;">ADDRESS HERE</span>
+        </div>
+      </div>
+
+      <div style="padding:14px; text-align:center; background:#f8fafc; border-top:1px solid #e2e8f0;">
+        <div id="ocrStatus" style="font-size:0.82rem; font-weight:600; color:#64748b; margin-bottom:10px;">Aim at the recipient address on label</div>
+        <div style="display:flex; gap:10px;">
+          <button id="btnCaptureOcr" class="btn primary" onclick="captureAndProcessFrame()" style="flex:1; padding:12px; font-size:1rem;">Capture & Read</button>
+          <button class="btn secondary" onclick="stopCameraScanner()" style="padding:12px 16px;">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <canvas id="cropCanvas" style="display:none;"></canvas>
+
+<script>
+// Master Route Rules for Sections 1 to 12
+var ROUTE_RULES = [
+  // SECTION 1: Wallabi Point
+  { id: "s1_sw1", secNum: 1, match: /saltwater/i, condition: function(n) { return n >= 269 && n <= 273; }, title: "Saltwater Rd (269–273 Odd)", section: "Sec 1: Saltwater (1st Left)", score: 1010, dir: 'asc', note: "1st Left entry strip (269, 271, 273) — Low to High" },
+  { id: "s1_har", secNum: 1, match: /hartlyn/i, condition: function(n) { return !n || n > 1; }, title: "Hartlyn Dr (>1)", section: "Sec 1: Hartlyn Dr", score: 1020, dir: 'asc', note: "Off Saltwater Rd into Wallabi Pt (>1) — Low to High" },
+  { id: "s1_kad", secNum: 1, match: /kadungle/i, title: "Kadungle Cl", section: "Sec 1: Kadungle Cl", score: 1030, dir: 'asc', note: "Cul-de-sac off Hartlyn — Low to High" },
+  { id: "s1_how_low", secNum: 1, match: /howard/i, condition: function(n) { return n >= 28; }, title: "Howard St (28–36 Entry Leg)", section: "Sec 1: Howard St (Left Turn)", score: 1035, dir: 'asc', note: "Left turn off Hartlyn (even numbers 28–36) — Low to High" },
+  { id: "s1_how_high", secNum: 1, match: /howard/i, condition: function(n) { return !n || n < 28; }, title: "Howard St (Main Run Descending)", section: "Sec 1: Howard St (Main Run)", score: 1040, dir: 'desc', note: "Upper Howard run descending (<28) — High to Low" },
+  { id: "s1_wal_top", secNum: 1, match: /walter\s*fay/i, condition: function(n) { return n >= 18; }, title: "Walter Fay St (18–22 High)", section: "Sec 1: Walter Fay St (Entry)", score: 1050, dir: 'asc', note: "Left turn off Howard covering 18, 20, 22 — Low to High" },
+  { id: "s1_alv", secNum: 1, match: /alveena/i, title: "Alveena Ct", section: "Sec 1: Alveena Ct", score: 1055, dir: 'asc', note: "Odd numbers ascending off Walter Fay — Low to High" },
+  { id: "s1_wal_low", secNum: 1, match: /walter\s*fay/i, condition: function(n) { return !n || n < 18; }, title: "Walter Fay St (<18 Rest)", section: "Sec 1: Walter Fay St", score: 1060, dir: 'desc', note: "Rest of Walter Fay across to Janice St (<18) — High to Low" },
+  { id: "s1_jan", secNum: 1, match: /janice/i, title: "Janice St", section: "Sec 1: Janice St", score: 1070, dir: 'desc', note: "Janice St run out towards Hartlyn/Saltwater — High to Low" },
+  { id: "s1_har1", secNum: 1, match: /hartlyn/i, condition: function(n) { return n === 1; }, title: "1 Hartlyn Dr", section: "Sec 1: 1 Hartlyn Dr", score: 1075, dir: 'asc', note: "On its own on corner before Saltwater Rd" },
+  { id: "s1_sw2", secNum: 1, match: /saltwater/i, condition: function(n) { return n >= 279 && n <= 311 && n % 2 !== 0; }, title: "Saltwater Rd (279–311 Odd)", section: "Sec 1: Saltwater (Post-Janice)", score: 1080, dir: 'asc', note: "Odd side after Janice St — Low to High" },
+  { id: "s1_bea1", secNum: 1, match: /beach/i, condition: function(n) { return n === null || (n >= 17 && n <= 29 && n % 2 !== 0) || (n >= 14 && n <= 24 && n % 2 === 0); }, title: "Beach St (29–17 Odd, 24–14 Even)", section: "Sec 1: Beach St (High to Low)", score: 1085, dir: 'desc', note: "Entry strip (29–17 Odd, 24–14 Even) — High to Low" },
+  { id: "s1_spi", secNum: 1, match: /spinnaker/i, title: "Spinnaker Cr", section: "Sec 1: Spinnaker Cr", score: 1090, dir: 'asc', note: "Crescent off Beach St — Low to High" },
+  { id: "s1_bea2", secNum: 1, match: /beach/i, condition: function(n) { return n !== null && !((n >= 17 && n <= 29 && n % 2 !== 0) || (n >= 14 && n <= 24 && n % 2 === 0)); }, title: "Beach St (Rest)", section: "Sec 1: Beach St (Rest)", score: 1095, dir: 'asc', note: "Rest of Beach St — Low to High" },
+  { id: "s1_mar1", secNum: 1, match: /marine/i, condition: function(n) { return n === null || n >= 27; }, title: "Marine Dr (45–27 High)", section: "Sec 1: Marine Dr (45-27)", score: 1100, dir: 'desc', note: "High to Low (45 down to 27)" },
+  { id: "s1_oce", secNum: 1, match: /ocean\s*dr/i, title: "Ocean Dr", section: "Sec 1: Ocean Dr", score: 1110, dir: 'desc', note: "Headland drive — High to Low" },
+  { id: "s1_sea", secNum: 1, match: /seaview/i, title: "Seaview Pde", section: "Sec 1: Seaview Pde", score: 1120, dir: 'asc', note: "Connects to Pacific St — Low to High" },
+  { id: "s1_mar2", secNum: 1, match: /marine/i, condition: function(n) { return n !== null && n < 27; }, title: "Marine Dr (1–26)", section: "Sec 1: Marine Dr (1-26)", score: 1130, dir: 'desc', note: "High to Low (26 down to 1)" },
+  { id: "s1_pac", secNum: 1, match: /pacific\s*st/i, title: "Pacific St", section: "Sec 1: Pacific St", score: 1140, dir: 'desc', note: "Leads back toward Shelly/Saltwater — High to Low" },
+  { id: "s1_she", secNum: 1, match: /shelly/i, title: "Shelly Cl", section: "Sec 1: Shelly Cl", score: 1150, dir: 'asc', note: "Cul-de-sac before Saltwater exit — Low to High" },
+  { id: "s1_sw3", secNum: 1, match: /saltwater/i, condition: function(n) { return n >= 373 && n <= 385 && n % 2 !== 0; }, title: "Saltwater Rd (373–385 Odd)", section: "Sec 1: Saltwater High (Odds)", score: 1160, dir: 'asc', note: "Far south odd parcel turnaround — Low to High" },
+  { id: "s1_sw4", secNum: 1, match: /saltwater/i, condition: function(n) { return n >= 338 && n <= 364 && n % 2 === 0; }, title: "Saltwater Rd (364–338 Even)", section: "Sec 1: Saltwater Return (Evens)", score: 1170, dir: 'desc', note: "Even side countdown returning north — High to Low" },
+  { id: "s1_sw5", secNum: 1, match: /saltwater/i, condition: function(n) { return n >= 337 && n <= 369 && n % 2 !== 0; }, title: "Saltwater Rd (369–337 Odd)", section: "Sec 1: Saltwater Return (Odds)", score: 1180, dir: 'desc', note: "Odd side countdown returning north — High to Low" },
+
+  // SECTION 2: Shantull Loop & Peets
+  { id: "s2_sha1", secNum: 2, match: /shantull/i, condition: function(n) { return n && n >= 4 && n <= 10; }, title: "Shantull Dr (4–10)", section: "Sec 2: Shantull Dr (4-10)", score: 2010, dir: 'asc', note: "Entry stretch of Shantull (4–10) — Low to High" },
+  { id: "s2_sea", secNum: 2, match: /seaspray/i, title: "Seaspray Cct", section: "Sec 2: Seaspray Cct", score: 2020, dir: 'asc', note: "Left loop off Shantull — Low to High" },
+  { id: "s2_sha2", secNum: 2, match: /shantull/i, condition: function(n) { return !n || n > 10; }, title: "Shantull Dr (12+)", section: "Sec 2: Shantull Dr (12+)", score: 2030, dir: 'asc', note: "Resume Shantull Dr after Seaspray (12+) — Low to High" },
+  { id: "s2_sur", secNum: 2, match: /surfsound/i, title: "Surfsound Ave", section: "Sec 2: Surfsound Ave", score: 2040, dir: 'desc', note: "High to Low return out to Saltwater" },
+  { id: "s2_sw1", secNum: 2, match: /saltwater/i, condition: function(n) { return n >= 319 && n <= 335 && n % 2 !== 0; }, title: "Saltwater Rd (335–319 Odd)", section: "Sec 2: Saltwater Cross (Odds)", score: 2050, dir: 'desc', note: "Cross road to odd side (335–319) — High to Low" },
+  { id: "s2_sw2", secNum: 2, match: /saltwater/i, condition: function(n) { return (!n && n !== 0) || (n <= 334 && n >= 200 && n % 2 === 0); }, title: "Saltwater Rd (334–200 Even)", section: "Sec 2: Saltwater (Evens Countdown)", score: 2060, dir: 'desc', note: "Even side heading back toward Peets (334–200) — High to Low" },
+  { id: "s2_pee1", secNum: 2, match: /peets/i, condition: function(n) { return n && n <= 16; }, title: "Peets Ave (1–16)", section: "Sec 2: Peets Ave (1-16)", score: 2070, dir: 'asc', note: "First part of Peets Ave (1–16) — Low to High" },
+  { id: "s2_wan", secNum: 2, match: /wangi/i, title: "Wangi Pl", section: "Sec 2: Wangi Pl", score: 2075, dir: 'asc', note: "Short court off Peets Ave — Low to High" },
+  { id: "s2_pee2", secNum: 2, match: /peets/i, condition: function(n) { return !n || n > 16; }, title: "Peets Ave (17+)", section: "Sec 2: Peets Ave (17+)", score: 2080, dir: 'asc', note: "Resume Peets Ave after Wangi (17+) — Low to High" },
+  { id: "s2_ber", secNum: 2, match: /berry/i, title: "Berry Cl", section: "Sec 2: Berry Cl", score: 2090, dir: 'asc', note: "End of Section 2 — Low to High" },
+
+  // SECTION 3: Old Bar Rd & Medowie / Ivy
+  { id: "s3_old1", secNum: 3, match: /old\s*bar\s*rd/i, condition: function(n) { return n === null || n >= 128; }, title: "Old Bar Rd (130–128)", section: "Sec 3: Old Bar Rd (130-128)", score: 3005, dir: 'desc', note: "High to Low" },
+  { id: "s3_har", secNum: 3, match: /harrogate/i, title: "Harrogate Ln", section: "Sec 3: Harrogate Ln", score: 3010, dir: 'asc', note: "Low to High" },
+  { id: "s3_old2", secNum: 3, match: /old\s*bar\s*rd/i, condition: function(n) { return n !== null && n <= 126 && n >= 55; }, title: "Old Bar Rd (126–55)", section: "Sec 3: Old Bar Rd (126-55)", score: 3020, dir: 'desc', note: "Heading in toward Medowie Rd turnoff" },
+  { id: "s3_haw", secNum: 3, match: /hawkins/i, title: "Hawkins Cl", section: "Sec 3: Hawkins Cl", score: 3025, dir: 'asc', note: "New pocket off northern Medowie Rd" },
+  { id: "s3_med1", secNum: 3, match: /medowie\s*rd/i, condition: function(n) { return n !== null && n <= 18; }, title: "Medowie Rd (1–18 Low)", section: "Sec 3: Medowie Rd (Northbound)", score: 3030, dir: 'asc', note: "Northbound entry along Medowie Rd" },
+  { id: "s3_mis1", secNum: 3, match: /mistral/i, condition: function(n) { return n === null || n <= 10; }, title: "Mistral Pl (1-10)", section: "Sec 3: Mistral Pl", score: 3040, dir: 'asc', note: "Low to High (1-10)" },
+  { id: "s3_mis2", secNum: 3, match: /mistral/i, condition: function(n) { return n !== null && n >= 12 && n <= 38 && n % 2 === 0; }, title: "Mistral Pl (12-38 Evens)", section: "Sec 3: Mistral Pl", score: 3045, dir: 'asc', note: "Low to High (Evens only)" },
+  { id: "s3_mis3", secNum: 3, match: /mistral/i, condition: function(n) { return n !== null && n >= 11 && n <= 31 && n % 2 !== 0; }, title: "Mistral Pl (31-11 Odds)", section: "Sec 3: Mistral Pl", score: 3048, dir: 'desc', note: "High to Low (Odds only)" },
+  { id: "s3_ber", secNum: 3, match: /berber/i, title: "Berber Rd", section: "Sec 3: Berber Rd", score: 3050, dir: 'asc', note: "Side pocket off Medowie Rd" },
+  { id: "s3_ban_units", secNum: 3, match: /medowie\s*rd/i, condition: function(n, addr) { 
+      if (n !== 39) return false; 
+      var u = (addr||'').match(/unit\s*(\d+)|\b(\d+)\/39\b/i); 
+      if(u) { var un = parseInt(u[1]||u[2]); return un <= 10; }
+      return false; 
+  }, title: "39 Medowie Rd (Units 1-10)", section: "Sec 3: Banyula Lodge (1-10)", score: 3052, dir: 'asc', note: "Units 1-10 Only" },
+  { id: "s3_cre", secNum: 3, match: /crestview|coastview/i, title: "Crestview Ave", section: "Sec 3: Crestview Ave", score: 3055, dir: 'asc', note: "Off Berber Rd (after Berber drops)" },
+  { id: "s3_ban_rest", secNum: 3, match: /medowie\s*rd/i, condition: function(n, addr) { 
+      if (n !== 39) return false; 
+      var u = (addr||'').match(/unit\s*(\d+)|\b(\d+)\/39\b/i); 
+      if(u) { var un = parseInt(u[1]||u[2]); return un >= 11; }
+      return true;
+  }, title: "39 Medowie Rd (Banyula Lodge 11+)", section: "Sec 3: Banyula Lodge (11+)", score: 3060, dir: 'asc', note: "Retirement Village (Units 11+)" },
+  { id: "s3_med2", secNum: 3, match: /medowie\s*rd/i, condition: function(n) { return n !== null && n >= 20 && n <= 46 && n % 2 === 0; }, title: "Medowie Rd (46–20 Even Return)", section: "Sec 3: Medowie Rd (Southbound)", score: 3070, dir: 'desc', note: "Left side heading south toward Ivy" },
+  { id: "s3_ivy1", secNum: 3, match: /ivy/i, condition: function(n) { return n === null || n >= 35; }, title: "Ivy Cres (50+ down to 35)", section: "Sec 3: Ivy Cres (High Entry)", score: 3080, dir: 'desc', note: "Southern entrance running High → Low" },
+  { id: "s3_bro", secNum: 3, match: /brooke/i, title: "Brooke Cl", section: "Sec 3: Brooke Cl", score: 3085, dir: 'asc', note: "Cul-de-sac nested inside Ivy Cres" },
+  { id: "s3_ivy2", secNum: 3, match: /ivy/i, condition: function(n) { return n !== null && n < 35; }, title: "Ivy Cres (34–1)", section: "Sec 3: Ivy Cres (Low Exit)", score: 3090, dir: 'desc', note: "Finish Ivy countdown to north exit" },
+  { id: "s3_med3", secNum: 3, match: /medowie\s*rd/i, condition: function(n) { return n !== null && n >= 50; }, title: "Medowie Rd (50+)", section: "Sec 3: Medowie Rd (50+)", score: 3095, dir: 'asc', note: "Low to High (after exiting Ivy)" },
+
+  // SECTION 4: Marra Estate
+  { id: "s4_ban_entry", secNum: 4, match: /banyula/i, condition: function(n) { return n !== null && n >= 41 && n <= 50; }, title: "Banyula Dr (41-50)", section: "Sec 4: Banyula Dr", score: 4005, dir: 'asc', note: "Low to High" },
+  { id: "s4_bun", secNum: 4, match: /bunyun|bunyan/i, title: "Bunyun Ave", section: "Sec 4: Bunyun Ave", score: 4010, dir: 'asc', note: "Low to High" },
+  { id: "s4_lit", secNum: 4, match: /little\s*tern/i, title: "Little Tern St", section: "Sec 4: Little Tern St", score: 4020, dir: 'desc', note: "High to Low" },
+  { id: "s4_ban1", secNum: 4, match: /banyula/i, condition: function(n) { return n !== null && n >= 19 && n <= 25; }, title: "Banyula Dr (25–19 Curb)", section: "Sec 4: Banyula Dr (Curb 25-19)", score: 4030, dir: 'desc', note: "High to Low" },
+  { id: "s4_mar1", secNum: 4, match: /marra/i, condition: function(n) { return n === null || n <= 8; }, title: "Marra Dr (1–8)", section: "Sec 4: Marra Dr", score: 4040, dir: 'asc', note: "Low to High" },
+  { id: "s4_ond", secNum: 4, match: /ondaroo/i, title: "Ondaroo Crest", section: "Sec 4: Ondaroo Crest", score: 4050, dir: 'asc', note: "Low to High" },
+  { id: "s4_vie", secNum: 4, match: /viewmont/i, title: "Viewmont Way", section: "Sec 4: Viewmont Way", score: 4060, dir: 'desc', note: "High to Low" },
+  { id: "s4_mar2", secNum: 4, match: /marra/i, condition: function(n) { return n !== null && n >= 9 && n <= 16; }, title: "Marra Dr (9–16)", section: "Sec 4: Marra Dr", score: 4065, dir: 'asc', note: "Low to High" },
+  { id: "s4_auv", secNum: 4, match: /auvergne/i, title: "Auvergne Way", section: "Sec 4: Auvergne Way", score: 4070, dir: 'asc', note: "Low to High" },
+  { id: "s4_mar3", secNum: 4, match: /marra/i, condition: function(n) { return n !== null && n >= 52 && n <= 60; }, title: "Marra Dr (60–52)", section: "Sec 4: Marra Dr", score: 4075, dir: 'desc', note: "High to Low" },
+  { id: "s4_cub", secNum: 4, match: /cubbaroo/i, title: "Cubbaroo St", section: "Sec 4: Cubbaroo St", score: 4080, dir: 'desc', note: "High to Low" },
+  { id: "s4_mar4", secNum: 4, match: /marra/i, condition: function(n) { return n !== null && n >= 28 && n <= 50; }, title: "Marra Dr (50–28)", section: "Sec 4: Marra Dr", score: 4085, dir: 'desc', note: "High to Low" },
+  { id: "s4_bul", secNum: 4, match: /bular/i, title: "Bular Cl", section: "Sec 4: Bular Cl", score: 4090, dir: 'asc', note: "Low to High" },
+  { id: "s4_ret", secNum: 4, match: /retreat/i, title: "Retreat Cl", section: "Sec 4: Retreat Cl", score: 4100, dir: 'asc', note: "Low to High" },
+  { id: "s4_moo", secNum: 4, match: /moonagee/i, title: "Moonagee Crest", section: "Sec 4: Moonagee Crest", score: 4110, dir: 'asc', note: "Low to High" },
+  { id: "s4_mar5", secNum: 4, match: /marra/i, condition: function(n) { return n !== null && n >= 18 && n <= 26; }, title: "Marra Dr (26–18)", section: "Sec 4: Marra Dr", score: 4120, dir: 'desc', note: "High to Low" },
+  { id: "s4_mai", secNum: 4, match: /maita/i, title: "Maita Way", section: "Sec 4: Maita Way", score: 4130, dir: 'desc', note: "High to Low" },
+  { id: "s4_ban_exit", secNum: 4, match: /banyula/i, condition: function(n) { return n !== null && n <= 13; }, title: "Banyula Dr (13-1)", section: "Sec 4: Banyula Dr", score: 4140, dir: 'desc', note: "High to Low" },
+  { id: "s4_sea", secNum: 4, match: /seasound/i, title: "Seasound Cl", section: "Sec 4: Seasound Cl", score: 4150, dir: 'asc', note: "Low to High" },
+
+  // SECTION 5: Molong
+  { id: "s5_mol1", secNum: 5, match: /molong/i, condition: function(n) { return n !== null && n <= 4 && n % 2 === 0; }, title: "Molong Rd (4-2 Evens)", section: "Sec 5: Molong Rd", score: 5005, dir: 'desc', note: "High to Low" },
+  { id: "s5_far", secNum: 5, match: /farleigh/i, condition: function(n) { return n >= 21 && n <= 29; }, title: "Farleigh St (29–21)", section: "Sec 5: Farleigh St", score: 5010, dir: 'desc', note: "High to Low" },
+  { id: "s5_dru", secNum: 5, match: /drury/i, title: "Drury Cl", section: "Sec 5: Drury Cl", score: 5020, dir: 'asc', note: "Low to High" },
+  { id: "s5_cas", secNum: 5, match: /casurina|casuarina/i, title: "Casuarina Cl", section: "Sec 5: Casuarina Cl", score: 5030, dir: 'asc', note: "Low to High" },
+  { id: "s5_mol2", secNum: 5, match: /molong/i, condition: function(n) { return n === null || n >= 5; }, title: "Molong Rd (5-48, 50)", section: "Sec 5: Molong Rd", score: 5040, dir: 'asc', note: "Low to High" },
+  { id: "s5_kes", secNum: 5, match: /kestral|kestrel/i, title: "Kestrel Ave", section: "Sec 5: Kestrel Ave", score: 5050, dir: 'asc', note: "Low to High" },
+  { id: "s5_gan1", secNum: 5, match: /gannet/i, condition: function(n) { return n === null || n >= 30; }, title: "Gannet Cres (Down to 30)", section: "Sec 5: Gannet Cres", score: 5060, dir: 'desc', note: "High to Low" },
+  { id: "s5_ter", secNum: 5, match: /tern\s*cl/i, title: "Tern Cl", section: "Sec 5: Tern Cl", score: 5070, dir: 'asc', note: "Low to High" },
+  { id: "s5_gan2", secNum: 5, match: /gannet/i, condition: function(n) { return n !== null && ((n >= 23 && n <= 29 && n % 2 !== 0) || (n >= 14 && n <= 16 && n % 2 === 0)); }, title: "Gannet Cres (29-23 Odd, 16-14 Even)", section: "Sec 5: Gannet Cres", score: 5080, dir: 'desc', note: "High to Low" },
+  { id: "s5_osp", secNum: 5, match: /osprey/i, title: "Osprey Ave", section: "Sec 5: Osprey Ave", score: 5090, dir: 'asc', note: "Low to High" },
+  { id: "s5_gan3", secNum: 5, match: /gannet/i, condition: function(n) { return n !== null && ((n >= 1 && n <= 21 && n % 2 !== 0) || (n >= 2 && n <= 10 && n % 2 === 0)); }, title: "Gannet Cres (21-1 Odd, 10-2 Even)", section: "Sec 5: Gannet Cres", score: 5100, dir: 'desc', note: "High to Low" },
+  { id: "s5_leo1", secNum: 5, match: /leopardwood/i, condition: function(n) { return n === null || n >= 14; }, title: "Leopardwood St (16-14)", section: "Sec 5: Leopardwood St", score: 5110, dir: 'desc', note: "High to Low" },
+  { id: "s5_lau", secNum: 5, match: /laurina/i, title: "Laurina Cl", section: "Sec 5: Laurina Cl", score: 5120, dir: 'asc', note: "Low to High" },
+  { id: "s5_leo2", secNum: 5, match: /leopardwood/i, condition: function(n) { return n !== null && n <= 12; }, title: "Leopardwood St (12-1)", section: "Sec 5: Leopardwood St", score: 5130, dir: 'desc', note: "High to Low" },
+  { id: "s5_car1", secNum: 5, match: /carrabeen/i, condition: function(n) { return n !== null && n <= 12; }, title: "Carrabeen Dr (1-12)", section: "Sec 5: Carrabeen Dr", score: 5140, dir: 'asc', note: "Low to High" },
+  { id: "s5_kam", secNum: 5, match: /kamala/i, title: "Kamala Cl", section: "Sec 5: Kamala Cl", score: 5150, dir: 'asc', note: "Low to High" },
+  { id: "s5_car2", secNum: 5, match: /carrabeen/i, condition: function(n) { return n !== null && ((n >= 13 && n <= 17 && n % 2 !== 0) || (n >= 14 && n <= 22 && n % 2 === 0)); }, title: "Carrabeen Dr (13-17 Odd, 14-22 Even)", section: "Sec 5: Carrabeen Dr", score: 5160, dir: 'asc', note: "Low to High" },
+  { id: "s5_mid", secNum: 5, match: /midgen/i, title: "Midgen Cl", section: "Sec 5: Midgen Cl", score: 5170, dir: 'asc', note: "Low to High" },
+  { id: "s5_car3", secNum: 5, match: /carrabeen/i, condition: function(n) { return n !== null && (n === 21 || (n >= 24 && n <= 28 && n % 2 === 0)); }, title: "Carrabeen Dr (24-28 Even, 21 Odd)", section: "Sec 5: Carrabeen Dr", score: 5180, dir: 'asc', note: "Low to High" },
+  { id: "s5_sno", secNum: 5, match: /snoewood|snowood/i, title: "Snoewood St", section: "Sec 5: Snoewood St", score: 5190, dir: 'desc', note: "High to Low" },
+  { id: "s5_car4", secNum: 5, match: /carrabeen/i, condition: function(n) { return n !== null && ((n >= 23 && n <= 31 && n % 2 !== 0) || (n >= 30 && n <= 42 && n % 2 === 0)); }, title: "Carrabeen Dr (23-31 Odd, 30-42 Even)", section: "Sec 5: Carrabeen Dr", score: 5200, dir: 'asc', note: "Low to High" },
+  { id: "s5_sil", secNum: 5, match: /silky\s*ash/i, title: "Silky Ash Cl", section: "Sec 5: Silky Ash Cl", score: 5210, dir: 'asc', note: "Low to High" },
+  { id: "s5_car5", secNum: 5, match: /carrabeen/i, condition: function(n) { return n === null || ((n >= 35 && n <= 37 && n % 2 !== 0) || (n >= 44 && n <= 48 && n % 2 === 0)); }, title: "Carrabeen Dr (35-37 Odd, 44-48 Even)", section: "Sec 5: Carrabeen Dr", score: 5220, dir: 'asc', note: "Low to High" },
+  { id: "s5_gan4", secNum: 5, match: /gannet/i, condition: function(n) { return n !== null && n >= 49 && n <= 55 && n % 2 !== 0; }, title: "Gannet Cres (49-55 Odd)", section: "Sec 5: Gannet Cres", score: 5230, dir: 'asc', note: "Low to High" },
+  { id: "s5_cor1", secNum: 5, match: /corkwood/i, condition: function(n) { return n === null || n >= 11; }, title: "Corkwood St (11-34)", section: "Sec 5: Corkwood St", score: 5240, dir: 'asc', note: "Low to High" },
+  { id: "s5_crn", secNum: 5, match: /coronation/i, title: "Coronation St", section: "Sec 5: Coronation St", score: 5250, dir: 'asc', note: "Low to High" },
+  { id: "s5_cor2", secNum: 5, match: /corkwood/i, condition: function(n) { return n !== null && n <= 12; }, title: "Corkwood St (12-1)", section: "Sec 5: Corkwood St", score: 5260, dir: 'desc', note: "High to Low" },
+
+  // SECTION 6: Northern Cross Grid
+  { id: "s6_wat1", secNum: 6, match: /waterman/i, condition: function(n) { return n === null || ((n >= 78 && n <= 134 && n % 2 === 0) || (n >= 85 && n <= 133 && n % 2 !== 0)); }, title: "Waterman St (134-78 Even, 133-85 Odd)", section: "Sec 6: Waterman St", score: 6010, dir: 'desc', note: "High to Low" },
+  { id: "s6_cas", secNum: 6, match: /cassia/i, title: "Cassia Cl", section: "Sec 6: Cassia Cl", score: 6020, dir: 'asc', note: "Low to High" },
+  { id: "s6_wat2", secNum: 6, match: /waterman/i, condition: function(n) { return n !== null && ((n >= 68 && n <= 74 && n % 2 === 0) || (n >= 73 && n <= 83 && n % 2 !== 0)); }, title: "Waterman St (83-73 Odd, 74-68 Even)", section: "Sec 6: Waterman St", score: 6030, dir: 'desc', note: "High to Low" },
+  { id: "s6_euc", secNum: 6, match: /eucalypt/i, title: "Eucalypt Cl", section: "Sec 6: Eucalypt Cl", score: 6040, dir: 'asc', note: "Low to High" },
+  { id: "s6_wat3", secNum: 6, match: /waterman/i, condition: function(n) { return n !== null && ((n >= 60 && n <= 66 && n % 2 === 0) || (n >= 59 && n <= 71 && n % 2 !== 0)); }, title: "Waterman St (71-59 Odd, 66-60 Even)", section: "Sec 6: Waterman St", score: 6050, dir: 'desc', note: "High to Low" },
+  { id: "s6_far", secNum: 6, match: /farleigh/i, condition: function(n) { return n === null || (n >= 1 && n <= 17); }, title: "Farleigh St (17–1)", section: "Sec 6: Farleigh St", score: 6060, dir: 'desc', note: "High to Low" },
+  { id: "s6_ric", secNum: 6, match: /richardson/i, title: "Richardson St", section: "Sec 6: Richardson St", score: 6070, dir: 'desc', note: "High to Low" },
+  { id: "s6_bry", secNum: 6, match: /bryan/i, title: "Bryan St", section: "Sec 6: Bryan St", score: 6080, dir: 'asc', note: "Low to High" },
+  { id: "s6_she", secNum: 6, match: /sheppard|shepherd/i, title: "Sheppard St", section: "Sec 6: Sheppard St", score: 6090, dir: 'asc', note: "Low to High" },
+  { id: "s6_bel", secNum: 6, match: /belford/i, title: "Belford St", section: "Sec 6: Belford St", score: 6100, dir: 'desc', note: "High to Low" },
+  { id: "s6_wat4", secNum: 6, match: /waterman/i, condition: function(n) { return n !== null && ((n >= 46 && n <= 58 && n % 2 === 0) || (n >= 33 && n <= 59 && n % 2 !== 0)); }, title: "Waterman St (33-59 Odd, 46-58 Even)", section: "Sec 6: Waterman St", score: 6110, dir: 'asc', note: "Low to High" },
+  { id: "s6_wat5", secNum: 6, match: /waterman/i, condition: function(n) { return n !== null && ((n >= 2 && n <= 32 && n % 2 === 0) || (n >= 1 && n <= 31 && n % 2 !== 0)); }, title: "Waterman St (31-1 Odd, 32-2 Even)", section: "Sec 6: Waterman St", score: 6120, dir: 'desc', note: "High to Low" },
+
+  // SECTION 7: Old Bar Rd & Surrounds
+  { id: "s7_old", secNum: 7, match: /old\s*bar\s*rd/i, condition: function(n) { return !n || n < 55; }, title: "Old Bar Rd (Low / Depot End)", section: "Sec 7: Old Bar Rd", score: 7010, dir: 'asc', note: "Lower Old Bar Rd / Bakery pocket" },
+  { id: "s7_dav", secNum: 7, match: /david/i, title: "David St", section: "Sec 7: David St", score: 7020, dir: 'asc', note: "Section 7 street" },
+  { id: "s7_cro", secNum: 7, match: /cross/i, title: "Cross St", section: "Sec 7: Cross St", score: 7030, dir: 'asc', note: "Section 7 street" },
+  { id: "s7_tir", secNum: 7, match: /tirriki/i, title: "Tirriki St", section: "Sec 7: Tirriki St", score: 7040, dir: 'asc', note: "Section 7 street" },
+  { id: "s7_kol", secNum: 7, match: /kolang/i, title: "Kolang St", section: "Sec 7: Kolang St", score: 7050, dir: 'asc', note: "Section 7 street" },
+  { id: "s7_smi", secNum: 7, match: /smith/i, title: "Smith St", section: "Sec 7: Smith St", score: 7060, dir: 'asc', note: "Section 7 street" },
+  { id: "s7_ung", secNum: 7, match: /ungala/i, title: "Ungala Rd", section: "Sec 7: Ungala Rd", score: 7070, dir: 'asc', note: "Low to High" },
+  { id: "s7_con", secNum: 7, match: /connell/i, title: "Connell St", section: "Sec 7: Connell St", score: 7080, dir: 'asc', note: "Low to High" },
+
+  // SECTION 8: Hall, George, Lewis, Pacific Pde, Rose, Clerke (East-to-West with Oceanic Pl & Sunrise Cl), Pryor, Newlan
+  { id: "s8_hal", secNum: 8, match: /hall/i, title: "Hall St", section: "Sec 8: Hall St", score: 8010, dir: 'asc', note: "Low to High" },
+  { id: "s8_geo", secNum: 8, match: /george/i, title: "George St", section: "Sec 8: George St", score: 8020, dir: 'asc', note: "Low to High" },
+  { id: "s8_lew", secNum: 8, match: /lewis/i, title: "Lewis St", section: "Sec 8: Lewis St", score: 8030, dir: 'asc', note: "Low to High" },
+  { id: "s8_pac", secNum: 8, match: /pacific\s*pde/i, title: "Pacific Pde", section: "Sec 8: Pacific Pde", score: 8040, dir: 'desc', note: "High to Low (Coastal parade)" },
+  { id: "s8_ros", secNum: 8, match: /rose/i, title: "Rose St", section: "Sec 8: Rose St", score: 8050, dir: 'desc', note: "High to Low" },
+  { id: "s8_cle", secNum: 8, match: /clerke/i, title: "Clerke St (East-to-West with Offshoots)", section: "Sec 8: Clerke St", score: 8060, dir: 'asc', note: "Low to High (East-to-West splitting around Oceanic Pl & Sunrise Cl)" },
+  { id: "s8_oce", secNum: 8, match: /oceanic/i, title: "Oceanic Pl", section: "Sec 8: Oceanic Pl", score: 8065, dir: 'asc', note: "Low to High (Offshoot off Clerke St)" },
+  { id: "s8_sun", secNum: 8, match: /sunrise/i, title: "Sunrise Cl", section: "Sec 8: Sunrise Cl", score: 8070, dir: 'asc', note: "Low to High (Offshoot off Clerke St)" },
+  { id: "s8_pry", secNum: 8, match: /pryor|prior/i, title: "Pryor Cres", section: "Sec 8: Pryor Cres", score: 8075, dir: 'asc', note: "Low to High (Offshoot off Clerke St)" },
+  { id: "s8_new", secNum: 8, match: /newlan/i, title: "Newlan St", section: "Sec 8: Newlan St", score: 8080, dir: 'asc', note: "Low to High (Offshoot off Clerke St)" },
+
+  // SECTION 9: Wyden (53-59), Forest Lane (Cliftons 119 Village -> Estate Loop: Driftwood, Freya, Fleetwood, Surf, Newport, Peony, Sheaffe -> Forest Rest High to Low)
+  { id: "s9_wyd_high", secNum: 9, match: /wyden/i, condition: function(n) { return n && n >= 53; }, title: "Wyden St (53–59 Entry)", section: "Sec 9: Wyden St (53-59)", score: 9010, dir: 'asc', note: "Low to High for 53–59 before Forest Lane" },
+  { id: "s9_for_clif", secNum: 9, match: /forest/i, condition: function(n) { return n === 119; }, title: "119 Forest Lane (Cliftons Village)", section: "Sec 9: Cliftons Village (119 Forest)", score: 9020, dir: 'asc', note: "Gated village: left at gate, outer perimeter & inner snake" },
+  { id: "s9_est_dri", secNum: 9, match: /driftwood/i, title: "Driftwood St", section: "Sec 9: Driftwood St", score: 9025, dir: 'asc', note: "Low to High (Estate loop after Cliftons)" },
+  { id: "s9_est_fre", secNum: 9, match: /freya/i, title: "Freya Ct", section: "Sec 9: Freya Ct", score: 9028, dir: 'asc', note: "Low to High (Estate loop)" },
+  { id: "s9_est", secNum: 9, match: /fleetwood|surf|newport|peony/i, title: "Estate Pocket (Fleetwood, Surf, Newport, Peony)", section: "Sec 9: Estate Loop", score: 9030, dir: 'asc', note: "Low to High (Estate loop)" },
+  { id: "s9_she_est", secNum: 9, match: /sheaffe/i, condition: function(n) { return !n || (n !== 2 && n !== 4); }, title: "Sheaffe Ave (Estate Section)", section: "Sec 9: Sheaffe Ave", score: 9035, dir: 'asc', note: "Low to High (Estate loop, excl. 2 & 4)" },
+  { id: "s9_for_rest", secNum: 9, match: /forest/i, condition: function(n) { return !n || n !== 119; }, title: "Forest Lane (Main Run)", section: "Sec 9: Forest Ln (High to Low)", score: 9040, dir: 'desc', note: "High to Low along Forest Lane then turn to Bluehaven" },
+
+  // SECTION 10: Albatross (Bluehaven 1-9 -> Rosier -> Breezeway -> Tropicbird -> Bluehaven 10-17 -> Albatross & Threadfin -> 16 Flagtail)
+  { id: "s10_blu1", secNum: 10, match: /bluehaven/i, condition: function(n) { return n && n <= 9; }, title: "Bluehaven Dr (1–9)", section: "Sec 10: Bluehaven (1-9)", score: 10010, dir: 'asc', note: "Low to High (Start of Bluehaven estate run)" },
+  { id: "s10_ros", secNum: 10, match: /rosier/i, title: "Rosier Pl", section: "Sec 10: Rosier Pl", score: 10020, dir: 'asc', note: "Low to High (Duck into Rosier Place)" },
+  { id: "s10_bre", secNum: 10, match: /breezeway/i, title: "Breezeway Cl", section: "Sec 10: Breezeway Cl", score: 10030, dir: 'asc', note: "Low to High (Duck into Breezeway Close)" },
+  { id: "s10_tro", secNum: 10, match: /tropicbird/i, title: "Tropicbird St", section: "Sec 10: Tropicbird St", score: 10040, dir: 'asc', note: "Low to High (Tropicbird St loop)" },
+  { id: "s10_blu2", secNum: 10, match: /bluehaven/i, condition: function(n) { return n && n >= 10 && n <= 17; }, title: "Bluehaven Dr (10–17)", section: "Sec 10: Bluehaven (10-17)", score: 10050, dir: 'asc', note: "Low to High (Resume Bluehaven Drive)" },
+  { id: "s10_alb", secNum: 10, match: /albatross/i, title: "Albatross Way (incl. Threadfin Ct)", section: "Sec 10: Albatross Way", score: 10060, dir: 'asc', note: "Low to High (Down Albatross, right to Threadfin Ct, return & finish Albatross)" },
+  { id: "s10_thr", secNum: 10, match: /threadfin/i, title: "Threadfin Ct", section: "Sec 10: Threadfin Ct", score: 10065, dir: 'asc', note: "Low to High (Turn right off Albatross)" },
+  { id: "s10_fla16", secNum: 10, match: /flagtail/i, condition: function(n) { return n === 16; }, title: "16 Flagtail Ave", section: "Sec 10: Flagtail Ave (No. 16)", score: 10070, dir: 'asc', note: "Only #16 Flagtail Ave done in Section 10" },
+
+  // SECTION 11: Bluehaven Estate Part 2 (Bluehaven High-to-Low after Albatross, Flagtail, Mariner, Eagle, Yellowfin, Trevally, Egret, Marlin, Greenbank, Curlew)
+  { id: "s11_blu_rest", secNum: 11, match: /bluehaven/i, condition: function(n) { return !n || n >= 18; }, title: "Bluehaven Dr (18+ Post-Albatross)", section: "Sec 11: Bluehaven Dr (High to Low)", score: 11005, dir: 'desc', note: "High to Low back on Bluehaven after Albatross" },
+  { id: "s11_fla", secNum: 11, match: /flagtail/i, condition: function(n) { return !n || n !== 16; }, title: "Flagtail Ave (Rest)", section: "Sec 11: Flagtail Ave", score: 11010, dir: 'asc', note: "Low to High (Remaining Flagtail addresses)" },
+  { id: "s11_mar", secNum: 11, match: /mariner/i, title: "Mariner St", section: "Sec 11: Mariner St", score: 11020, dir: 'asc', note: "Low to High" },
+  { id: "s11_eag", secNum: 11, match: /eagle/i, title: "Eagle St", section: "Sec 11: Eagle St", score: 11030, dir: 'asc', note: "Low to High" },
+  { id: "s11_yel", secNum: 11, match: /yellowfin/i, title: "Yellowfin Rd", section: "Sec 11: Yellowfin Rd", score: 11040, dir: 'asc', note: "Low to High" },
+  { id: "s11_tre", secNum: 11, match: /trevally/i, title: "Trevally St", section: "Sec 11: Trevally St", score: 11050, dir: 'asc', note: "Low to High" },
+  { id: "s11_egr", secNum: 11, match: /egret/i, title: "Egret Pl", section: "Sec 11: Egret Pl", score: 11060, dir: 'asc', note: "Low to High" },
+  { id: "s11_marlin", secNum: 11, match: /marlin/i, title: "Marlin St", section: "Sec 11: Marlin St", score: 11070, dir: 'asc', note: "Low to High" },
+  { id: "s11_gre", secNum: 11, match: /greenbank/i, title: "Greenbank St", section: "Sec 11: Greenbank St", score: 11080, dir: 'asc', note: "Low to High" },
+  { id: "s11_cur", secNum: 11, match: /curlew/i, title: "Curlew St", section: "Sec 11: Curlew St", score: 11090, dir: 'asc', note: "Low to High" },
+
+  // SECTION 12: Wyden (Rest High-to-Low), Sheaffe (2 & 4 Low-to-High), Bella Villa (High-to-Low), Joel (High-to-Low), Suni, Kodi, Coral (Low-to-High), Rushby (High-to-Low), Paradise Cl (Last)
+  { id: "s12_wyd_rest", secNum: 12, match: /wyden/i, condition: function(n) { return !n || n < 53; }, title: "Wyden St (Rest / Main)", section: "Sec 12: Wyden St (High to Low)", score: 12010, dir: 'desc', note: "High to Low (Main Wyden St run in Section 12)" },
+  { id: "s12_she", secNum: 12, match: /sheaffe/i, condition: function(n) { return n === 2 || n === 4; }, title: "2 & 4 Sheaffe Ave (Wyden Stub)", section: "Sec 12: Sheaffe Ave Stub (2 & 4)", score: 12020, dir: 'asc', note: "Low to High (Stub off Wyden St for 2 & 4 only)" },
+  { id: "s12_bel", secNum: 12, match: /bella\s*villa/i, title: "Bella Villa Pde", section: "Sec 12: Bella Villa Pde", score: 12030, dir: 'desc', note: "High to Low" },
+  { id: "s12_joe", secNum: 12, match: /joel/i, title: "Joel Dr", section: "Sec 12: Joel Dr", score: 12040, dir: 'desc', note: "High to Low" },
+  { id: "s12_sun", secNum: 12, match: /suni/i, title: "Suni St", section: "Sec 12: Suni St", score: 12050, dir: 'asc', note: "Low to High" },
+  { id: "s12_kod", secNum: 12, match: /kodi/i, title: "Kodi St", section: "Sec 12: Kodi St", score: 12060, dir: 'asc', note: "Low to High" },
+  { id: "s12_cor", secNum: 12, match: /coral/i, title: "Coral Ave", section: "Sec 12: Coral Ave", score: 12070, dir: 'asc', note: "Low to High" },
+  { id: "s12_rus", secNum: 12, match: /rushby/i, title: "Rushby Dr (Penultimate)", section: "Sec 12: Rushby Dr", score: 12080, dir: 'desc', note: "High to Low (Second to last stop before home)" },
+  { id: "s12_par", secNum: 12, match: /paradise/i, title: "Paradise Cl (Very Last Stop)", section: "Sec 12: Paradise Cl (Last)", score: 12090, dir: 'asc', note: "Low to High (Driver's street — absolute last stop of Section 12)" }
+];
+var STREET_DIRECTORY = [
+  { name: "Saltwater Rd", sec: "Sec 1 / 2" }, { name: "Hartlyn Dr", sec: "Sec 1" }, { name: "Kadungle Cl", sec: "Sec 1" },
+  { name: "Howard St", sec: "Sec 1" }, { name: "Alveena Ct", sec: "Sec 1" }, { name: "Walter Fay St", sec: "Sec 1" },
+  { name: "Janice St", sec: "Sec 1" }, { name: "Beach St", sec: "Sec 1" }, { name: "Spinnaker Cr", sec: "Sec 1" },
+  { name: "Marine Dr", sec: "Sec 1" }, { name: "Ocean Dr", sec: "Sec 1" }, { name: "Seaview Pde", sec: "Sec 1" },
+  { name: "Pacific St", sec: "Sec 1" }, { name: "Shelly Cl", sec: "Sec 1" },
+  { name: "Shantull Dr", sec: "Sec 2" }, { name: "Seaspray Cct", sec: "Sec 2" }, { name: "Surfsound Ave", sec: "Sec 2" },
+  { name: "Wangi Pl", sec: "Sec 2" }, { name: "Peets Ave", sec: "Sec 2" }, { name: "Berry Cl", sec: "Sec 2" },
+  { name: "Harrogate Ln", sec: "Sec 3" }, { name: "Old Bar Rd", sec: "Sec 3 / 7" }, { name: "Hawkins Cl", sec: "Sec 3" },
+  { name: "Medowie Rd", sec: "Sec 3 / 4" }, { name: "Mistral Pl", sec: "Sec 3" }, { name: "Berber Rd", sec: "Sec 3" },
+  { name: "Crestview Ave", sec: "Sec 3" }, { name: "Ivy Cres", sec: "Sec 3" }, { name: "Brooke Cl", sec: "Sec 3" },
+  { name: "Bunyun Ave", sec: "Sec 4" }, { name: "Little Tern St", sec: "Sec 4" }, { name: "Banyula Dr", sec: "Sec 4" },
+  { name: "Marra Dr", sec: "Sec 4" }, { name: "Ondaroo Crest", sec: "Sec 4" }, { name: "Viewmont Way", sec: "Sec 4" },
+  { name: "Auvergne Way", sec: "Sec 4" }, { name: "Cubbaroo St", sec: "Sec 4" }, { name: "Bular Cl", sec: "Sec 4" },
+  { name: "Retreat Cl", sec: "Sec 4" }, { name: "Moonagee Crest", sec: "Sec 4" }, { name: "Maita Way", sec: "Sec 4" },
+  { name: "Seasound Cl", sec: "Sec 4" },
+  { name: "Farleigh St", sec: "Sec 5 / 6" }, { name: "Drury Cl", sec: "Sec 5" }, { name: "Molong Rd", sec: "Sec 5" },
+  { name: "Casuarina Cl", sec: "Sec 5" }, { name: "Kestrel Ave", sec: "Sec 5" }, { name: "Gannet Cres", sec: "Sec 5" },
+  { name: "Tern Cl", sec: "Sec 5" }, { name: "Osprey Ave", sec: "Sec 5" }, { name: "Leopardwood St", sec: "Sec 5" },
+  { name: "Laurina Cl", sec: "Sec 5" }, { name: "Carrabeen Dr", sec: "Sec 5" }, { name: "Kamala Cl", sec: "Sec 5" },
+  { name: "Midgen Cl", sec: "Sec 5" }, { name: "Snoewood St", sec: "Sec 5" }, { name: "Silky Ash Cl", sec: "Sec 5" },
+  { name: "Corkwood St", sec: "Sec 5" }, { name: "Coronation St", sec: "Sec 5" },
+  { name: "Waterman St", sec: "Sec 6" }, { name: "Cassia Cl", sec: "Sec 6" }, { name: "Eucalypt Cl", sec: "Sec 6" },
+  { name: "Richardson St", sec: "Sec 6" }, { name: "Belford St", sec: "Sec 6" }, { name: "Bryan St", sec: "Sec 6" },
+  { name: "Sheppard St", sec: "Sec 6" },
+  { name: "David St", sec: "Sec 7" }, { name: "Cross St", sec: "Sec 7" }, { name: "Tirriki St", sec: "Sec 7" },
+  { name: "Kolang St", sec: "Sec 7" }, { name: "Smith St", sec: "Sec 7" }, { name: "Ungala Rd", sec: "Sec 7" },
+  { name: "Connell St", sec: "Sec 7" },
+  { name: "Hall St", sec: "Sec 8" }, { name: "Lewis St", sec: "Sec 8" }, { name: "George St", sec: "Sec 8" },
+  { name: "Pacific Pde", sec: "Sec 8" }, { name: "Rose St", sec: "Sec 8" }, { name: "Clerke St", sec: "Sec 8" },
+  { name: "Oceanic Pl", sec: "Sec 8" }, { name: "Sunrise Cl", sec: "Sec 8" }, { name: "Pryor Cres", sec: "Sec 8" },
+  { name: "Newlan St", sec: "Sec 8" },
+  { name: "Forest Lane", sec: "Sec 9" }, { name: "Driftwood St", sec: "Sec 9" }, { name: "Freya Ct", sec: "Sec 9" },
+  { name: "Fleetwood Rd", sec: "Sec 9" }, { name: "Surf St", sec: "Sec 9" }, { name: "Newport St", sec: "Sec 9" },
+  { name: "Peony St", sec: "Sec 9" }, { name: "Sheaffe Ave", sec: "Sec 9 / 12" }, { name: "Wyden St", sec: "Sec 9 / 12" },
+  { name: "Bluehaven Dr", sec: "Sec 10 / 11" }, { name: "Rosier Pl", sec: "Sec 10" }, { name: "Breezeway Cl", sec: "Sec 10" },
+  { name: "Tropicbird St", sec: "Sec 10" }, { name: "Albatross Way", sec: "Sec 10" }, { name: "Threadfin Ct", sec: "Sec 10" },
+  { name: "Flagtail Ave", sec: "Sec 10 / 11" }, { name: "Mariner St", sec: "Sec 11" }, { name: "Eagle St", sec: "Sec 11" },
+  { name: "Yellowfin Rd", sec: "Sec 11" }, { name: "Trevally St", sec: "Sec 11" }, { name: "Egret Pl", sec: "Sec 11" },
+  { name: "Marlin St", sec: "Sec 11" }, { name: "Greenbank St", sec: "Sec 11" }, { name: "Curlew St", sec: "Sec 11" },
+  { name: "Bella Villa Pde", sec: "Sec 12" }, { name: "Joel Dr", sec: "Sec 12" }, { name: "Suni St", sec: "Sec 12" },
+  { name: "Rushby Dr", sec: "Sec 12" }, { name: "Kodi St", sec: "Sec 12" }, { name: "Coral Ave", sec: "Sec 12" },
+  { name: "Paradise Cl", sec: "Sec 12" }
+];
+
+var parcels = [];
+var currentFilter = 'all';
+var activeSectionLadder = 1;
+var activeRuleId = null;
+
+function switchMode(mode) {
+  var tabL = document.getElementById('tabLookup');
+  var tabS = document.getElementById('tabSequencer');
+  var viewL = document.getElementById('viewLookup');
+  var viewS = document.getElementById('viewSequencer');
+  if (mode === 'lookup') {
+    tabL.classList.add('active');
+    tabS.classList.remove('active');
+    viewL.style.display = 'block';
+    viewS.style.display = 'none';
+  } else {
+    tabS.classList.add('active');
+    tabL.classList.remove('active');
+    viewS.style.display = 'block';
+    viewL.style.display = 'none';
+  }
+}
+
+function extractNumber(text) {
+  // Check for "Unit X Y Street"
+  var unitWordMatch = text.match(/unit\s*\d+\s+(\d+)/i);
+  if (unitWordMatch) return parseInt(unitWordMatch[1], 10);
+  
+  // Check for "X/Y Street"
+  var unitMatch = text.match(/^\d+\/(\d+)/);
+  if (unitMatch) return parseInt(unitMatch[1], 10);
+  
+  // Check for standard leading number (ignores letters like 'A', 'B')
+  var numMatch = text.match(/^(\d+)/);
+  return numMatch ? parseInt(numMatch[1], 10) : null;
+}
+
+function findMatchingRuleIndex(rawText) {
+  var text = (rawText || '').trim();
+  if (!text) return -1;
+  var num = extractNumber(text);
+  for (var i = 0; i < ROUTE_RULES.length; i++) {
+    var rule = ROUTE_RULES[i];
+    if (rule.match.test(text)) {
+      if (rule.condition && !rule.condition(num)) continue;
+      return i;
+    }
+  }
+  return -1;
+}
+
+function runTubLookup(rawQuery) {
+  var q = (rawQuery || '').trim();
+  var banner = document.getElementById('targetBanner');
+  var grid = document.getElementById('neighborsGrid');
+
+  if (!q) {
+    banner.style.display = 'none';
+    grid.style.display = 'none';
+    activeRuleId = null;
+    renderSectionLadder(activeSectionLadder);
+    return;
+  }
+
+  var idx = findMatchingRuleIndex(q);
+  if (idx === -1) {
+    banner.style.display = 'none';
+    grid.style.display = 'none';
+    return;
+  }
+
+  var rule = ROUTE_RULES[idx];
+  var num = extractNumber(q);
+  activeRuleId = rule.id;
+
+  // Populate Target Banner
+  document.getElementById('resSectionBadge').innerText = 'SECTION ' + rule.secNum + ' TUB';
+  document.getElementById('resDirBadge').innerText = rule.dir === 'desc' ? 'Street Runs: High → Low (Countdown)' : 'Street Runs: Low → High';
+  document.getElementById('resAddrTitle').innerText = q + '  (' + rule.title + ')';
+  document.getElementById('resRuleDesc').innerText = rule.note;
+  banner.style.display = 'block';
+  grid.style.display = 'grid';
+
+  // Build BEFORE list
+  var beforeEl = document.getElementById('beforeList');
+  beforeEl.innerHTML = '';
+
+  if (num !== null) {
+    var sameBeforeLi = document.createElement('li');
+    if (rule.dir === 'asc') {
+      sameBeforeLi.innerHTML = '<span>Lower #' + 's on ' + rule.title + ' (1 to ' + (num - 1) + ')</span><span class="neighbor-hint">Same street</span>';
+    } else {
+      sameBeforeLi.innerHTML = '<span>Higher #' + 's on ' + rule.title + ' (' + (num + 1) + '+)</span><span class="neighbor-hint">Same street</span>';
+    }
+    beforeEl.appendChild(sameBeforeLi);
+  }
+
+  var prevCount = 0;
+  for (var b = idx - 1; b >= 0 && prevCount < 4; b--) {
+    if (ROUTE_RULES[b].secNum !== rule.secNum) break;
+    var li = document.createElement('li');
+    li.innerHTML = '<span>' + ROUTE_RULES[b].title + '</span><span class="neighbor-hint">Earlier in Sec ' + rule.secNum + '</span>';
+    beforeEl.appendChild(li);
+    prevCount++;
+  }
+  if (beforeEl.children.length === 0) {
+    beforeEl.innerHTML = '<li><span>First stop at the front of Section ' + rule.secNum + ' tub!</span></li>';
+  }
+
+  // Build AFTER list
+  var afterEl = document.getElementById('afterList');
+  afterEl.innerHTML = '';
+
+  if (num !== null) {
+    var sameAfterLi = document.createElement('li');
+    if (rule.dir === 'asc') {
+      sameAfterLi.innerHTML = '<span>Higher #' + 's on ' + rule.title + ' (' + (num + 1) + '+)</span><span class="neighbor-hint">Same street</span>';
+    } else {
+      sameAfterLi.innerHTML = '<span>Lower #' + 's on ' + rule.title + ' (' + (num - 1) + ' down to 1)</span><span class="neighbor-hint">Same street</span>';
+    }
+    afterEl.appendChild(sameAfterLi);
+  }
+
+  var nextCount = 0;
+  for (var a = idx + 1; a < ROUTE_RULES.length && nextCount < 4; a++) {
+    if (ROUTE_RULES[a].secNum !== rule.secNum) break;
+    var liAfter = document.createElement('li');
+    liAfter.innerHTML = '<span>' + ROUTE_RULES[a].title + '</span><span class="neighbor-hint">Later in Sec ' + rule.secNum + '</span>';
+    afterEl.appendChild(liAfter);
+    nextCount++;
+  }
+  if (afterEl.children.length === 0) {
+    afterEl.innerHTML = '<li><span>Very last stop at the back of Section ' + rule.secNum + ' tub!</span></li>';
+  }
+
+  renderSectionLadder(rule.secNum, idx);
+}
+
+function renderSectionLadder(secNum, highlightRuleIdx) {
+  activeSectionLadder = secNum;
+  var pills = document.querySelectorAll('.sec-pill');
+  for (var p = 0; p < pills.length; p++) {
+    if (p + 1 === secNum) pills[p].classList.add('active');
+    else pills[p].classList.remove('active');
+  }
+
+  var ladder = document.getElementById('ladderList');
+  ladder.innerHTML = '';
+
+  var stepNum = 1;
+  for (var i = 0; i < ROUTE_RULES.length; i++) {
+    var r = ROUTE_RULES[i];
+    if (r.secNum !== secNum) continue;
+
+    var li = document.createElement('li');
+    var cls = 'ladder-item';
+    if (r.id === activeRuleId) {
+      cls += ' active-stop';
+    } else if (typeof highlightRuleIdx === 'number' && ROUTE_RULES[highlightRuleIdx] && ROUTE_RULES[highlightRuleIdx].secNum === secNum) {
+      if (i < highlightRuleIdx) cls += ' before-stop';
+      else if (i > highlightRuleIdx) cls += ' after-stop';
+    }
+    li.className = cls;
+
+    var dirBadge = r.dir === 'desc'
+      ? '<span class="ladder-dir dir-desc">High → Low</span>'
+      : '<span class="ladder-dir dir-asc">Low → High</span>';
+
+    li.innerHTML =
+      '<span class="ladder-step">' + stepNum + '</span>' +
+      '<div class="ladder-main">' +
+        '<div class="ladder-name">' + r.title + '</div>' +
+        '<div class="ladder-note">' + r.note + '</div>' +
+      '</div>' +
+      dirBadge;
+
+    ladder.appendChild(li);
+    stepNum++;
+  }
+}
+
+function clearLookup() {
+  var inp = document.getElementById('lookupInput');
+  inp.value = '';
+  document.getElementById('lookupSuggestList').style.display = 'none';
+  runTubLookup('');
+  inp.focus();
+}
+
+function setupAutocomplete(inputEl, suggestEl, onSelectCallback) {
+  inputEl.addEventListener('input', function() {
+    var val = this.value.trim();
+    if (!val) {
+      suggestEl.style.display = 'none';
+      if (onSelectCallback) onSelectCallback('');
+      return;
+    }
+
+    var numMatch = val.match(/^(\d+(?:\/\d+)?\s*)/);
+    var numPrefix = numMatch ? numMatch[1] : '';
+    var streetQuery = val.replace(/^\d+(?:\/\d+)?\s*/, '').toLowerCase();
+
+    if (!streetQuery) {
+      suggestEl.style.display = 'none';
+      return;
+    }
+
+    var matches = STREET_DIRECTORY.filter(function(s) {
+      return s.name.toLowerCase().indexOf(streetQuery) !== -1;
+    });
+
+    if (matches.length === 0) {
+      suggestEl.style.display = 'none';
+      if (onSelectCallback) onSelectCallback(val);
+      return;
+    }
+
+    suggestEl.innerHTML = '';
+    matches.slice(0, 6).forEach(function(m) {
+      var li = document.createElement('li');
+      li.className = 'autocomplete-item';
+      li.innerHTML = '<span><strong>' + numPrefix + '</strong>' + m.name + '</span><span class="autocomplete-sec">' + m.sec + '</span>';
+      li.onclick = function() {
+        var fullText = (numPrefix ? numPrefix.trim() + ' ' : '') + m.name;
+        inputEl.value = fullText;
+        suggestEl.style.display = 'none';
+        if (onSelectCallback) onSelectCallback(fullText);
+        else inputEl.focus();
+      };
+      suggestEl.appendChild(li);
+    });
+    suggestEl.style.display = 'block';
+
+    if (onSelectCallback) onSelectCallback(val);
+  });
+
+  document.addEventListener('click', function(e) {
+    if (!inputEl.contains(e.target) && !suggestEl.contains(e.target)) {
+      suggestEl.style.display = 'none';
+    }
+  });
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+  renderSectionLadder(1);
+
+  var lookupInput = document.getElementById('lookupInput');
+  var lookupSuggest = document.getElementById('lookupSuggestList');
+  setupAutocomplete(lookupInput, lookupSuggest, function(selectedVal) {
+    runTubLookup(selectedVal);
+  });
+  lookupInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      lookupSuggest.style.display = 'none';
+      runTubLookup(this.value);
+    }
+  });
+
+  var quickInput = document.getElementById('quickInput');
+  var autoSuggest = document.getElementById('autoSuggestList');
+  setupAutocomplete(quickInput, autoSuggest, null);
+  quickInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      autoSuggest.style.display = 'none';
+      addSingleParcel();
+    }
+  });
+});
+
+function parseLine(rawText) {
+  var text = (rawText || '').trim();
+  if (!text) return null;
+
+  var location = 'tub';
+  var backRegex = new RegExp('\\b(back|large|rear|box)\\b', 'i');
+  var frontRegex = new RegExp('\\b(front|seat|small box|sm box)\\b', 'i');
+  var tubRegex = new RegExp('\\b(tub|flat|small flat|satchel|letter)\\b', 'i');
+
+  if (backRegex.test(text)) {
+    location = 'back';
+    text = text.replace(backRegex, '').trim();
+  } else if (frontRegex.test(text)) {
+    location = 'front';
+    text = text.replace(frontRegex, '').trim();
+  } else if (tubRegex.test(text)) {
+    location = 'tub';
+    text = text.replace(tubRegex, '').trim();
+  }
+
+  var num = extractNumber(text);
+  var idx = findMatchingRuleIndex(text);
+  if (idx !== -1) {
+    var rule = ROUTE_RULES[idx];
+    var score = rule.score;
+    if (num !== null) {
+      score += (rule.dir === 'desc' ? (1000 - num) : num) * 0.01;
+    }
+    return { address: text, section: rule.section, location: location, score: score, matched: true, done: false };
+  }
+
+  return { address: text, section: 'Check Sector', location: location, score: 999999, matched: false, done: false };
+}
+
+function addSingleParcel() {
+  var input = document.getElementById('quickInput');
+  var val = input.value.trim();
+  if (!val) return;
+  var locEl = document.querySelector('input[name="quickLoc"]:checked');
+  var loc = locEl ? locEl.value : 'tub';
+  var item = parseLine(val + ' ' + loc);
+  if (item) {
+    parcels.push(item);
+    input.value = '';
+    recalculate();
+  }
+}
+
+function loadBulkData() {
+  var textarea = document.getElementById('bulkText');
+  var lines = textarea.value.split(/\r?\n/);
+  
+  if (parcels.length > 0 && lines.filter(l => l.trim().length > 0).length > 0) {
+      if (!confirm("Add these to the existing list? (Cancel will overwrite instead)")) {
+          parcels = [];
+      }
+  } else if (parcels.length === 0) {
+      parcels = [];
+  }
+  
+  for (var i = 0; i < lines.length; i++) {
+    var item = parseLine(lines[i]);
+    if (item) parcels.push(item);
+  }
+  textarea.value = ''; // clear textarea so we don't double click
+  recalculate();
+}
+
+function recalculate() {
+  parcels.sort(function(a, b) { return a.score - b.score; });
+  updateStats();
+  renderList();
+}
+
+function updateStats() {
+  var tub = 0, front = 0, back = 0;
+  for (var i = 0; i < parcels.length; i++) {
+    if (parcels[i].location === 'tub') tub++;
+    if (parcels[i].location === 'front') front++;
+    if (parcels[i].location === 'back') back++;
+  }
+  document.getElementById('countTub').innerText = tub;
+  document.getElementById('countFront').innerText = front;
+  document.getElementById('countBack').innerText = back;
+}
+
+function setFilter(filter, btn) {
+  currentFilter = filter;
+  var buttons = document.querySelectorAll('.filter-btn');
+  for (var i = 0; i < buttons.length; i++) buttons[i].classList.remove('active');
+  if (btn) btn.classList.add('active');
+  renderList();
+}
+
+function cycleLocation(index) {
+  var p = parcels[index];
+  if (!p) return;
+  if (p.location === 'tub') p.location = 'front';
+  else if (p.location === 'front') p.location = 'back';
+  else p.location = 'tub';
+  updateStats();
+  renderList();
+}
+
+function editAddress(index) {
+  var current = parcels[index].address;
+  var updated = prompt('Edit Address:', current);
+  if (updated && updated.trim() && updated !== current) {
+    parcels[index] = parseLine(updated.trim() + ' ' + parcels[index].location);
+    recalculate();
+  }
+}
+
+function deleteItem(index) {
+  parcels.splice(index, 1);
+  recalculate();
+}
+
+
+// Undo buffer for deleted items
+var lastDeleted = null;
+
+function renderList() {
+  var list = document.getElementById('deliveryList');
+  list.innerHTML = '';
+  
+  if (lastDeleted) {
+    var undoBanner = document.createElement('div');
+    undoBanner.style = "background: #fef9c3; border: 1px solid #fde047; padding: 8px 12px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: 700; color: #a16207;";
+    undoBanner.innerHTML = '<span>Item deleted</span> <button onclick="undoDelete()" style="background: white; border: 1px solid #ca8a04; padding: 4px 10px; border-radius: 6px; cursor: pointer; color: #a16207; font-weight: bold;">Undo</button>';
+    list.appendChild(undoBanner);
+  }
+
+  var filtered = [];
+  for (var i = 0; i < parcels.length; i++) {
+    if (currentFilter === 'all' || parcels[i].location === currentFilter) {
+      filtered.push({ item: parcels[i], idx: i });
+    }
+  }
+  if (filtered.length === 0) {
+    list.innerHTML += '<div class="empty-state">No parcels match this view.</div>';
+    return;
+  }
+  var locNames = { tub: '🧺 Tub', front: '📦 Front', back: '🚛 Back' };
+  var locClasses = { tub: 'badge-tub', front: 'badge-front', back: 'badge-back' };
+  for (var j = 0; j < filtered.length; j++) {
+    var p = filtered[j].item;
+    var origIdx = filtered[j].idx;
+    var li = document.createElement('li');
+    li.className = 'delivery-row';
+    if (p.done) li.style.opacity = '0.4';
+    
+    var upBtn = (origIdx > 0) ? '<button class="icon-btn" onclick="moveItem(' + origIdx + ', -1)" title="Move Up">⬆️</button>' : '';
+    var dnBtn = (origIdx < parcels.length - 1) ? '<button class="icon-btn" onclick="moveItem(' + origIdx + ', 1)" title="Move Down">⬇️</button>' : '';
+
+    var checkIcon = p.done ? '✅' : '⬜';
+
+    li.innerHTML =
+      '<div class="row-main" style="display: flex; gap: 8px; align-items: center; cursor: pointer;" onclick="toggleDone(' + origIdx + ')">' +
+        '<span style="font-size: 1.2rem;">' + checkIcon + '</span>' +
+        '<span class="seq-num" style="' + (p.done ? 'background: #94a3b8;' : '') + '">' + (origIdx + 1) + '</span>' +
+        '<div style="' + (p.done ? 'text-decoration: line-through;' : '') + '">' +
+          '<div class="addr-title">' + p.address + '</div>' +
+          '<div class="addr-sub">' + p.section + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="actions-wrapper">' +
+        upBtn + dnBtn +
+        '<span class="badge-loc ' + locClasses[p.location] + '" onclick="cycleLocation(' + origIdx + ')">' + locNames[p.location] + '</span>' +
+        '<button class="icon-btn" onclick="deleteItem(' + origIdx + ')">✕</button>' +
+      '</div>';
+    list.appendChild(li);
+  }
+}
+
+function toggleDone(idx) {
+  if (parcels[idx]) {
+    parcels[idx].done = !parcels[idx].done;
+    renderList();
+  }
+}
+
+function moveItem(idx, dir) {
+  if (idx + dir < 0 || idx + dir >= parcels.length) return;
+  var temp = parcels[idx];
+  parcels[idx] = parcels[idx + dir];
+  parcels[idx + dir] = temp;
+  
+  // We swap their custom score slightly so they stay in place on recalculate, 
+  // or we just skip full sort if we just want a manual bump.
+  // Instead of recalculate(), we just render to respect manual order:
+  renderList();
+}
+
+function undoDelete() {
+  if (lastDeleted) {
+    parcels.splice(lastDeleted.idx, 0, lastDeleted.item);
+    lastDeleted = null;
+    updateStats();
+    renderList();
+  }
+}
+
+// override delete to save buffer
+function deleteItem(index) {
+  lastDeleted = { idx: index, item: parcels[index] };
+  parcels.splice(index, 1);
+  updateStats();
+  renderList();
+}
+
+
+function clearAll() {
+  parcels = [];
+  document.getElementById('bulkText').value = '';
+  document.getElementById('quickInput').value = '';
+  recalculate();
+}
+
+function copyManifest() {
+  if (!parcels.length) return;
+  var out = parcels.map(function(p, i) {
+    return (i + 1) + '. ' + p.address + ' [' + p.location.toUpperCase() + '] - ' + p.section;
+  });
+  navigator.clipboard.writeText(out.join('\n'));
+  alert('Copied to clipboard!');
+}
+
+var cameraStream = null;
+var ocrWorker = null;
+
+async function initOcrEngine() {
+  if (!ocrWorker) {
+    var status = document.getElementById('ocrStatus');
+    if (status) status.innerText = "Loading OCR engine (first time only)...";
+    ocrWorker = await Tesseract.createWorker('eng');
+    await ocrWorker.setParameters({
+      tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz/ -.,'
+    });
+  }
+}
+
+async function startCameraScanner() {
+  var modal = document.getElementById('scannerModal');
+  var video = document.getElementById('cameraFeed');
+  var status = document.getElementById('ocrStatus');
+  
+  modal.style.display = 'flex';
+  status.style.color = "#64748b";
+  status.innerText = "Initializing camera & scanner...";
+
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: "environment" },
+        width: { ideal: 1920 },
+        height: { ideal: 1080 }
+      },
+      audio: false
+    });
+    video.srcObject = cameraStream;
+    await video.play();
+
+    status.innerText = "Ready. Line up the street address inside the box.";
+    initOcrEngine();
+  } catch (err) {
+    alert("Camera access failed: " + err.message + "\nMake sure camera permissions are enabled (or running over HTTPS).");
+    stopCameraScanner();
+  }
+}
+
+function stopCameraScanner() {
+  var modal = document.getElementById('scannerModal');
+  var video = document.getElementById('cameraFeed');
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(function(track) { track.stop(); });
+    cameraStream = null;
+  }
+  video.srcObject = null;
+  modal.style.display = 'none';
+}
+
+async function captureAndProcessFrame() {
+  var video = document.getElementById('cameraFeed');
+  var canvas = document.getElementById('cropCanvas');
+  var status = document.getElementById('ocrStatus');
+  var btn = document.getElementById('btnCaptureOcr');
+
+  if (!video.videoWidth) return;
+
+  btn.disabled = true;
+  status.style.color = "#2563eb";
+  status.innerText = "Reading label...";
+
+  try {
+    await initOcrEngine();
+
+    var vWidth = video.videoWidth;
+    var vHeight = video.videoHeight;
+    
+    var cropW = Math.floor(vWidth * 0.75);
+    var cropH = Math.floor(vHeight * 0.30);
+    var cropX = Math.floor((vWidth - cropW) / 2);
+    var cropY = Math.floor((vHeight - cropH) / 2);
+
+    canvas.width = cropW;
+    canvas.height = cropH;
+    var ctx = canvas.getContext('2d');
+
+    ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+
+    // Preprocessing: Convert to Grayscale & Contrast Boost
+    var imgData = ctx.getImageData(0, 0, cropW, cropH);
+    var d = imgData.data;
+    for (var i = 0; i < d.length; i += 4) {
+      var avg = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+      var val = avg > 140 ? 255 : 0;
+      d[i] = val;
+      d[i + 1] = val;
+      d[i + 2] = val;
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    var res = await ocrWorker.recognize(canvas);
+    var rawText = res.data.text || '';
+    
+    var lines = rawText.split('\n');
+    var matchedItem = null;
+
+    var locEl = document.querySelector('input[name="quickLoc"]:checked');
+    var loc = locEl ? locEl.value : 'tub';
+
+    for (var l = 0; l < lines.length; l++) {
+      var candidate = lines[l].trim();
+      if (!candidate) continue;
+
+      var parsed = parseLine(candidate + ' ' + loc);
+      if (parsed && parsed.matched) {
+        matchedItem = parsed;
+        break;
+      }
+    }
+
+    if (matchedItem) {
+      status.style.color = "#15803d";
+      status.innerText = "Found: " + matchedItem.address + " (" + matchedItem.section + ")";
+      
+      parcels.push(matchedItem);
+      recalculate();
+
+      setTimeout(function() {
+        stopCameraScanner();
+        status.style.color = "#64748b";
+        btn.disabled = false;
+      }, 700);
+
+    } else {
+      status.style.color = "#b91c1c";
+      status.innerText = "No street matched. Try slightly closer or adjusting angle.";
+      btn.disabled = false;
+    }
+  } catch (err) {
+    status.style.color = "#b91c1c";
+    status.innerText = "Scan error: " + err.message;
+    btn.disabled = false;
+  }
+}
+
+</script>
+</body>
+</html>
