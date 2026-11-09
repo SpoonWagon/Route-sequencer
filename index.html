@@ -903,7 +903,60 @@ function loadBulkData() {
       parcels = [];
   }
   
-  for (var // Section Labels Lookup
+  for (var i = 0; i < lines.length; i++) {
+    var item = parseLine(lines[i]);
+    if (item) parcels.push(item);
+  }
+  textarea.value = ''; // clear textarea so we don't double click
+  recalculate();
+}
+
+function recalculate() {
+  parcels.sort(function(a, b) { return a.score - b.score; });
+  updateStats();
+  renderList();
+}
+
+function updateStats() {
+  var tub = 0, front = 0, back = 0;
+  for (var i = 0; i < parcels.length; i++) {
+    if (parcels[i].location === 'tub') tub++;
+    if (parcels[i].location === 'front') front++;
+    if (parcels[i].location === 'back') back++;
+  }
+  document.getElementById('countTub').innerText = tub;
+  document.getElementById('countFront').innerText = front;
+  document.getElementById('countBack').innerText = back;
+}
+
+function setFilter(filter, btn) {
+  currentFilter = filter;
+  var buttons = document.querySelectorAll('.filter-btn');
+  for (var i = 0; i < buttons.length; i++) buttons[i].classList.remove('active');
+  if (btn) btn.classList.add('active');
+  renderList();
+}
+
+function cycleLocation(index) {
+  var p = parcels[index];
+  if (!p) return;
+  if (p.location === 'tub') p.location = 'front';
+  else if (p.location === 'front') p.location = 'back';
+  else p.location = 'tub';
+  updateStats();
+  renderList();
+}
+
+function editAddress(index) {
+  var current = parcels[index].address;
+  var updated = prompt('Edit Address:', current);
+  if (updated && updated.trim() && updated !== current) {
+    parcels[index] = parseLine(updated.trim() + ' ' + parcels[index].location);
+    recalculate();
+  }
+}
+
+// Section Labels Lookup
 var SECTION_LABELS = {
   1: "Sec 1: Wallabi Pt",
   2: "Sec 2: Shantull",
@@ -921,7 +974,6 @@ var SECTION_LABELS = {
 };
 
 var currentSectionFilter = 'all';
-// Undo snapshot for single delete or bulk section clear
 var undoSnapshot = null;
 var undoMessage = "";
 
@@ -939,7 +991,6 @@ function renderSectionFilterBar() {
     return;
   }
 
-  // Count parcels per section (respecting location filter if active)
   var secCounts = {};
   var secOrder = [];
   for (var i = 0; i < parcels.length; i++) {
@@ -952,7 +1003,6 @@ function renderSectionFilterBar() {
     secCounts[sNum]++;
   }
 
-  // If currentSectionFilter is no longer present in the list, reset to 'all'
   if (currentSectionFilter !== 'all' && !secCounts[currentSectionFilter]) {
     currentSectionFilter = 'all';
   }
@@ -1005,7 +1055,6 @@ function renderList() {
     var origIdx = filtered[j].idx;
     var sNum = filtered[j].secNum;
 
-    // Insert Section Partition Header whenever section changes
     if (sNum !== lastSecRendered) {
       lastSecRendered = sNum;
       var secTotal = 0;
@@ -1114,58 +1163,6 @@ function clearDoneItems() {
   }
   saveUndoSnapshot("Cleared " + doneCount + " completed stop(s)");
   parcels = parcels.filter(function(p) { return !p.done; });
-  updateStats();
-  renderList();
-}
-
-con + '</span>' +
-        '<span class="seq-num" style="' + (p.done ? 'background: #94a3b8;' : '') + '">' + (origIdx + 1) + '</span>' +
-        '<div style="' + (p.done ? 'text-decoration: line-through;' : '') + '">' +
-          '<div class="addr-title">' + p.address + '</div>' +
-          '<div class="addr-sub">' + p.section + '</div>' +
-        '</div>' +
-      '</div>' +
-      '<div class="actions-wrapper">' +
-        upBtn + dnBtn +
-        '<span class="badge-loc ' + locClasses[p.location] + '" onclick="cycleLocation(' + origIdx + ')">' + locNames[p.location] + '</span>' +
-        '<button class="icon-btn" onclick="deleteItem(' + origIdx + ')">✕</button>' +
-      '</div>';
-    list.appendChild(li);
-  }
-}
-
-function toggleDone(idx) {
-  if (parcels[idx]) {
-    parcels[idx].done = !parcels[idx].done;
-    renderList();
-  }
-}
-
-function moveItem(idx, dir) {
-  if (idx + dir < 0 || idx + dir >= parcels.length) return;
-  var temp = parcels[idx];
-  parcels[idx] = parcels[idx + dir];
-  parcels[idx + dir] = temp;
-  
-  // We swap their custom score slightly so they stay in place on recalculate, 
-  // or we just skip full sort if we just want a manual bump.
-  // Instead of recalculate(), we just render to respect manual order:
-  renderList();
-}
-
-function undoDelete() {
-  if (lastDeleted) {
-    parcels.splice(lastDeleted.idx, 0, lastDeleted.item);
-    lastDeleted = null;
-    updateStats();
-    renderList();
-  }
-}
-
-// override delete to save buffer
-function deleteItem(index) {
-  lastDeleted = { idx: index, item: parcels[index] };
-  parcels.splice(index, 1);
   updateStats();
   renderList();
 }
