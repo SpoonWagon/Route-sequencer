@@ -24,66 +24,66 @@
     --highlight-border: #3b82f6;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
-  body { background: var(--bg); color: var(--text); padding: 12px; line-height: 1.45; }
-  .container { max-width: 1100px; margin: 0 auto; }
+  html, body { background: var(--bg); color: var(--text); padding: 10px; line-height: 1.4; max-width: 100%; overflow-x: hidden; }
+  .container { max-width: 1100px; width: 100%; margin: 0 auto; overflow-x: hidden; }
   
-  header { margin-bottom: 12px; text-align: center; }
-  h1 { font-size: 1.35rem; font-weight: 800; color: var(--primary); margin-bottom: 2px; }
-  p.subtitle { color: var(--muted); font-size: 0.82rem; }
+  header { margin-bottom: 10px; text-align: center; }
+  h1 { font-size: 1.25rem; font-weight: 800; color: var(--primary); margin-bottom: 2px; }
+  p.subtitle { color: var(--muted); font-size: 0.8rem; }
 
   /* Top Mode Switcher Tabs */
-  .mode-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #e2e8f0; padding: 5px; border-radius: 12px; margin-bottom: 16px; }
-  .mode-tab { padding: 11px 10px; border: none; border-radius: 9px; font-size: 0.92rem; font-weight: 700; cursor: pointer; background: transparent; color: var(--muted); transition: all 0.15s; text-align: center; }
+  .mode-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: #e2e8f0; padding: 4px; border-radius: 12px; margin-bottom: 14px; }
+  .mode-tab { padding: 10px 8px; border: none; border-radius: 9px; font-size: 0.86rem; font-weight: 700; cursor: pointer; background: transparent; color: var(--muted); transition: all 0.15s; text-align: center; }
   .mode-tab.active { background: var(--card); color: var(--primary-accent); box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
 
-  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); margin-bottom: 16px; }
-  .card h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; color: var(--primary); }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); margin-bottom: 14px; min-width: 0; max-width: 100%; }
+  .card h2 { font-size: 1rem; font-weight: 700; margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center; color: var(--primary); }
 
   /* Quick Tub Lookup Specific Styles */
   .lookup-search-box { position: relative; margin-bottom: 14px; }
   .lookup-input-wrap { display: flex; gap: 8px; }
-  .lookup-input { width: 100%; padding: 14px 16px; font-size: 1.05rem; font-weight: 600; border: 2px solid var(--primary-accent); border-radius: 10px; outline: none; background: #fff; color: var(--primary); box-shadow: 0 2px 8px rgba(37,99,235,0.1); }
-  .lookup-clear-btn { padding: 0 16px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 10px; font-weight: 700; color: var(--muted); cursor: pointer; font-size: 1rem; }
+  .lookup-input { width: 100%; min-width: 0; padding: 12px 14px; font-size: 1rem; font-weight: 600; border: 2px solid var(--primary-accent); border-radius: 10px; outline: none; background: #fff; color: var(--primary); box-shadow: 0 2px 8px rgba(37,99,235,0.1); }
+  .lookup-clear-btn { padding: 0 14px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 10px; font-weight: 700; color: var(--muted); cursor: pointer; font-size: 1rem; flex-shrink: 0; }
 
   /* Target Banner */
-  .target-banner { background: var(--primary); color: white; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; display: none; }
-  .target-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-  .target-sec-badge { background: var(--primary-accent); color: white; padding: 3px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; }
-  .target-dir-badge { background: rgba(255,255,255,0.15); color: #f8fafc; padding: 3px 9px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
-  .target-addr-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 4px; color: #fff; }
-  .target-Rule-desc { font-size: 0.84rem; color: #cbd5e1; }
+  .target-banner { background: var(--primary); color: white; border-radius: 12px; padding: 14px; margin-bottom: 14px; display: none; }
+  .target-top { display: flex; flex-wrap: wrap; gap: 6px; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .target-sec-badge { background: var(--primary-accent); color: white; padding: 3px 10px; border-radius: 20px; font-size: 0.76rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; }
+  .target-dir-badge { background: rgba(255,255,255,0.15); color: #f8fafc; padding: 3px 9px; border-radius: 6px; font-size: 0.74rem; font-weight: 600; }
+  .target-addr-title { font-size: 1.15rem; font-weight: 800; margin-bottom: 4px; color: #fff; word-break: break-word; }
+  .target-Rule-desc { font-size: 0.82rem; color: #cbd5e1; }
 
   /* Before / Current / After Cards */
-  .neighbors-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; display: none; }
+  .neighbors-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; display: none; }
   @media (max-width: 600px) { .neighbors-grid { grid-template-columns: 1fr; } }
-  .neighbor-box { border: 1px solid var(--border); border-radius: 10px; padding: 12px; background: #f8fafc; }
+  .neighbor-box { border: 1px solid var(--border); border-radius: 10px; padding: 12px; background: #f8fafc; min-width: 0; }
   .neighbor-box.before-box { border-left: 4px solid #f59e0b; }
   .neighbor-box.after-box { border-left: 4px solid #10b981; }
-  .neighbor-hdr { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
+  .neighbor-hdr { font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
   .before-box .neighbor-hdr { color: #b45309; }
   .after-box .neighbor-hdr { color: #047857; }
-  .neighbor-list { list-style: none; font-size: 0.88rem; }
-  .neighbor-list li { padding: 5px 0; border-bottom: 1px dashed #e2e8f0; display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
+  .neighbor-list { list-style: none; font-size: 0.85rem; }
+  .neighbor-list li { padding: 5px 0; border-bottom: 1px dashed #e2e8f0; display: flex; justify-content: space-between; align-items: center; gap: 8px; font-weight: 600; }
   .neighbor-list li:last-child { border-bottom: none; }
-  .neighbor-hint { font-size: 0.74rem; color: var(--muted); font-weight: 500; }
+  .neighbor-hint { font-size: 0.72rem; color: var(--muted); font-weight: 500; flex-shrink: 0; }
 
-  /* Full Section Ladder */
-  .sec-pills { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; -webkit-overflow-scrolling: touch; }
-  .sec-pill { padding: 7px 13px; border-radius: 20px; border: 1px solid var(--border); background: white; font-size: 0.8rem; font-weight: 700; color: var(--text); cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+  /* Full Section Ladder (Wraps on mobile instead of horizontal scroll) */
+  .sec-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .sec-pill { padding: 6px 11px; border-radius: 18px; border: 1px solid var(--border); background: white; font-size: 0.76rem; font-weight: 700; color: var(--text); cursor: pointer; white-space: nowrap; }
   .sec-pill.active { background: var(--primary-accent); color: white; border-color: var(--primary-accent); }
 
   .ladder-list { list-style: none; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
-  .ladder-item { padding: 10px 12px; border-bottom: 1px solid var(--border); background: white; display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 0.88rem; }
+  .ladder-item { padding: 10px 12px; border-bottom: 1px solid var(--border); background: white; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 0.85rem; }
   .ladder-item:last-child { border-bottom: none; }
   .ladder-item.active-stop { background: var(--highlight-bg); border-left: 5px solid var(--highlight-border); font-weight: 700; }
   .ladder-item.before-stop { background: #fffbeb; }
   .ladder-item.after-stop { background: #ecfdf5; }
-  .ladder-step { width: 24px; height: 24px; border-radius: 50%; background: #e2e8f0; color: var(--text); font-size: 0.75rem; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .ladder-step { width: 24px; height: 24px; border-radius: 50%; background: #e2e8f0; color: var(--text); font-size: 0.74rem; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .active-stop .ladder-step { background: var(--primary-accent); color: white; }
-  .ladder-main { flex: 1; }
+  .ladder-main { flex: 1; min-width: 0; }
   .ladder-name { font-weight: 700; color: var(--primary); }
-  .ladder-note { font-size: 0.75rem; color: var(--muted); }
-  .ladder-dir { font-size: 0.72rem; font-weight: 700; padding: 3px 7px; border-radius: 4px; background: #f1f5f9; color: var(--muted); white-space: nowrap; }
+  .ladder-note { font-size: 0.74rem; color: var(--muted); }
+  .ladder-dir { font-size: 0.7rem; font-weight: 700; padding: 3px 7px; border-radius: 4px; background: #f1f5f9; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
   .dir-asc { background: #e0f2fe; color: #0369a1; }
   .dir-desc { background: #fae8ff; color: #a21caf; }
 
@@ -94,64 +94,72 @@
     box-shadow: 0 8px 20px rgba(0,0,0,0.15); z-index: 100; max-height: 240px;
     overflow-y: auto; list-style: none; display: none;
   }
-  .autocomplete-item { padding: 11px 14px; font-size: 0.92rem; cursor: pointer; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+  .autocomplete-item { padding: 11px 14px; font-size: 0.9rem; cursor: pointer; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
   .autocomplete-item:hover, .autocomplete-item:active { background: #eff6ff; color: var(--primary-accent); }
-  .autocomplete-sec { font-size: 0.75rem; font-weight: 700; color: var(--muted); background: #f1f5f9; padding: 2px 7px; border-radius: 4px; }
+  .autocomplete-sec { font-size: 0.74rem; font-weight: 700; color: var(--muted); background: #f1f5f9; padding: 2px 7px; border-radius: 4px; }
 
-  /* Sequencer View Layout */
-  .layout-grid { display: grid; grid-template-columns: 380px 1fr; gap: 16px; }
-  @media (max-width: 850px) { .layout-grid { grid-template-columns: 1fr; } }
-  .quick-add-form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px dashed var(--border); position: relative; }
-  .input-row { display: flex; gap: 8px; position: relative; }
-  input.seq-input { flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; }
+  /* Sequencer View Layout — minmax(0, 1fr) prevents CSS Grid blowout on mobile! */
+  .layout-grid { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 14px; width: 100%; }
+  @media (max-width: 850px) { .layout-grid { grid-template-columns: minmax(0, 1fr); } }
+  .quick-add-form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed var(--border); position: relative; }
+  .input-row { display: flex; gap: 6px; position: relative; width: 100%; }
+  input.seq-input { flex: 1; min-width: 0; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; }
   input.seq-input:focus { border-color: var(--primary-accent); }
-  .loc-selector { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .loc-selector { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
   .loc-radio input { display: none; }
-  .loc-radio label { display: block; text-align: center; padding: 9px 4px; font-size: 0.8rem; font-weight: 700; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; color: var(--muted); background: #f8fafc; }
+  .loc-radio label { display: block; text-align: center; padding: 9px 4px; font-size: 0.78rem; font-weight: 700; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; color: var(--muted); background: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .loc-radio input:checked + label.lbl-tub { background: var(--tub-bg); color: var(--tub-color); border-color: var(--tub-color); }
   .loc-radio input:checked + label.lbl-front { background: var(--front-bg); color: var(--front-color); border-color: var(--front-color); }
   .loc-radio input:checked + label.lbl-back { background: var(--back-bg); color: var(--back-color); border-color: var(--back-color); }
 
-  textarea { width: 100%; height: 140px; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.85rem; resize: vertical; outline: none; margin-top: 6px; }
+  textarea { width: 100%; height: 120px; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.85rem; resize: vertical; outline: none; margin-top: 6px; }
   .btn-group { display: flex; gap: 8px; margin-top: 10px; }
-  button.btn { padding: 10px 14px; border-radius: 8px; border: none; font-size: 0.88rem; font-weight: 700; cursor: pointer; }
+  button.btn { padding: 10px 12px; border-radius: 8px; border: none; font-size: 0.86rem; font-weight: 700; cursor: pointer; }
   button.primary { background: var(--primary-accent); color: white; flex: 1; }
   button.secondary { background: #e2e8f0; color: var(--text); }
 
-  .stats-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
-  .stat-card { border-radius: 8px; padding: 8px; text-align: center; border: 1px solid var(--border); }
+  /* Compact 3-Column Stats Summary — always fits 100% width */
+  .stats-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 10px; width: 100%; }
+  .stat-card { border-radius: 8px; padding: 7px 4px; text-align: center; border: 1px solid var(--border); min-width: 0; }
   .stat-card.tub { background: var(--tub-bg); border-color: #a7f3d0; color: var(--tub-color); }
   .stat-card.front { background: var(--front-bg); border-color: #fde68a; color: var(--front-color); }
   .stat-card.back { background: var(--back-bg); border-color: #fecaca; color: var(--back-color); }
-  .stat-val { font-size: 1.15rem; font-weight: 800; }
-  .stat-lbl { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; }
+  .stat-val { font-size: 1.1rem; font-weight: 800; line-height: 1.2; }
+  .stat-lbl { font-size: 0.66rem; font-weight: 700; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-  .view-filters { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 12px; padding-bottom: 4px; }
-  .filter-btn { padding: 6px 11px; border-radius: 20px; border: 1px solid var(--border); font-size: 0.75rem; font-weight: 700; background: white; cursor: pointer; color: var(--muted); white-space: nowrap; }
+  /* Wrapping Filter Bars — no sideways scrolling needed! */
+  .view-filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; width: 100%; }
+  .filter-btn { padding: 6px 10px; border-radius: 18px; border: 1px solid var(--border); font-size: 0.74rem; font-weight: 700; background: white; cursor: pointer; color: var(--muted); white-space: nowrap; flex: 1 1 auto; text-align: center; }
   .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
-  .item-list { list-style: none; max-height: 540px; overflow-y: auto; }
-  .delivery-row { display: flex; align-items: center; justify-content: space-between; padding: 10px; background: white; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; gap: 8px; }
-  .row-main { display: flex; align-items: center; gap: 10px; flex: 1; }
-  .seq-num { background: var(--primary); color: white; width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800; flex-shrink: 0; }
-  .addr-title { font-size: 0.92rem; font-weight: 700; color: var(--text); }
-  .addr-sub { font-size: 0.74rem; color: var(--muted); }
-  .actions-wrapper { display: flex; gap: 5px; align-items: center; }
-  .badge-loc { font-size: 0.7rem; font-weight: 800; padding: 4px 8px; border-radius: 5px; text-transform: uppercase; cursor: pointer; user-select: none; }
+  .sec-filter-bar { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; padding: 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; width: 100%; }
+  .sec-filter-btn { padding: 6px 10px; border-radius: 16px; border: 1px solid #cbd5e1; font-size: 0.74rem; font-weight: 700; background: white; cursor: pointer; color: #334155; white-space: nowrap; transition: all 0.15s; flex: 1 1 auto; text-align: center; }
+  .sec-filter-btn.active { background: var(--primary-accent); color: white; border-color: var(--primary-accent); box-shadow: 0 2px 4px rgba(37,99,235,0.2); }
+
+  /* Delivery List & Mobile-First Rows */
+  .item-list { list-style: none; width: 100%; }
+  .sec-group-header { background: #1e293b; color: #ffffff; padding: 8px 10px; border-radius: 8px; margin: 12px 0 8px 0; display: flex; flex-wrap: wrap; gap: 6px; justify-content: space-between; align-items: center; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.2px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); width: 100%; }
+  .sec-group-header:first-child { margin-top: 2px; }
+  .sec-group-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+  .sec-clear-btn { background: rgba(255,255,255,0.15); color: #f8fafc; border: 1px solid rgba(255,255,255,0.25); padding: 4px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .sec-clear-btn:hover, .sec-clear-btn:active { background: #ef4444; border-color: #ef4444; color: white; }
+
+  .delivery-row { display: flex; flex-direction: column; gap: 6px; padding: 9px 10px; background: white; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 7px; width: 100%; }
+  .row-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; }
+  .row-main { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; cursor: pointer; }
+  .seq-num { background: var(--primary); color: white; min-width: 25px; height: 25px; padding: 0 5px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 800; flex-shrink: 0; }
+  .addr-block { flex: 1; min-width: 0; }
+  .addr-title { font-size: 0.92rem; font-weight: 700; color: var(--text); word-break: break-word; line-height: 1.25; }
+  .addr-sub { font-size: 0.72rem; color: var(--muted); line-height: 1.2; margin-top: 1px; }
+  
+  .row-bottom { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding-left: 30px; width: 100%; }
+  .actions-wrapper { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
+  .badge-loc { font-size: 0.72rem; font-weight: 800; padding: 4px 9px; border-radius: 6px; text-transform: uppercase; cursor: pointer; user-select: none; white-space: nowrap; flex-shrink: 0; }
   .badge-tub { background: var(--tub-bg); color: var(--tub-color); border: 1px solid #a7f3d0; }
   .badge-front { background: var(--front-bg); color: var(--front-color); border: 1px solid #fde68a; }
   .badge-back { background: var(--back-bg); color: var(--back-color); border: 1px solid #fecaca; }
-  .icon-btn { background: #f8fafc; border: 1px solid var(--border); padding: 4px 7px; font-size: 0.8rem; border-radius: 5px; cursor: pointer; }
+  .icon-btn { background: #f8fafc; border: 1px solid var(--border); padding: 4px 8px; font-size: 0.76rem; border-radius: 6px; cursor: pointer; line-height: 1.1; }
   .empty-state { text-align: center; color: var(--muted); padding: 24px; font-size: 0.88rem; }
-
-  .sec-filter-bar { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 12px; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
-  .sec-filter-btn { padding: 6px 12px; border-radius: 20px; border: 1px solid #cbd5e1; font-size: 0.76rem; font-weight: 700; background: #f8fafc; cursor: pointer; color: #334155; white-space: nowrap; transition: all 0.15s; }
-  .sec-filter-btn.active { background: var(--primary-accent); color: white; border-color: var(--primary-accent); box-shadow: 0 2px 4px rgba(37,99,235,0.2); }
-  .sec-group-header { background: #1e293b; color: #ffffff; padding: 9px 12px; border-radius: 8px; margin: 14px 0 8px 0; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: 800; letter-spacing: 0.3px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-  .sec-group-header:first-child { margin-top: 2px; }
-  .sec-group-actions { display: flex; gap: 6px; align-items: center; }
-  .sec-clear-btn { background: rgba(255,255,255,0.15); color: #f8fafc; border: 1px solid rgba(255,255,255,0.25); padding: 4px 9px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
-  .sec-clear-btn:hover, .sec-clear-btn:active { background: #ef4444; border-color: #ef4444; color: white; }
 </style>
 </head>
 <body>
@@ -194,11 +202,11 @@
       <!-- Immediate Before / After Comparison -->
       <div id="neighborsGrid" class="neighbors-grid">
         <div class="neighbor-box before-box">
-          <div class="neighbor-hdr">⬆️ GOES BEFORE THIS PARCEL (In Front)</div>
+          <div class="neighbor-hdr">⬆️ PLACE BEHIND THESE (Earlier Stops)</div>
           <ul class="neighbor-list" id="beforeList"></ul>
         </div>
         <div class="neighbor-box after-box">
-          <div class="neighbor-hdr">⬇️ GOES AFTER THIS PARCEL (Behind)</div>
+          <div class="neighbor-hdr">⬇️ PLACE IN FRONT OF THESE (Later Stops)</div>
           <ul class="neighbor-list" id="afterList"></ul>
         </div>
       </div>
@@ -241,16 +249,16 @@
           </div>
           <div class="loc-selector">
             <div class="loc-radio">
-              <input type="radio" name="quickLoc" id="locTub" value="tub" checked>
+              <input type="radio" name="quickLoc" id="locBack" value="back" checked>
+              <label for="locBack" class="lbl-back">🚛 Back (Default)</label>
+            </div>
+            <div class="loc-radio">
+              <input type="radio" name="quickLoc" id="locTub" value="tub">
               <label for="locTub" class="lbl-tub">🧺 Tub (Flat)</label>
             </div>
             <div class="loc-radio">
               <input type="radio" name="quickLoc" id="locFront" value="front">
               <label for="locFront" class="lbl-front">📦 Front Seat</label>
-            </div>
-            <div class="loc-radio">
-              <input type="radio" name="quickLoc" id="locBack" value="back">
-              <label for="locBack" class="lbl-back">🚛 Back (Large)</label>
             </div>
           </div>
         </div>
@@ -575,6 +583,7 @@ var STREET_DIRECTORY = [
 ];
 
 var parcels = [];
+var parcelUidCounter = 1;
 var currentFilter = 'all';
 var activeSectionLadder = 1;
 var activeRuleId = null;
@@ -680,7 +689,7 @@ function runTubLookup(rawQuery) {
     prevCount++;
   }
   if (beforeEl.children.length === 0) {
-    beforeEl.innerHTML = '<li><span>First stop at the front of Section ' + rule.secNum + ' tub!</span></li>';
+    beforeEl.innerHTML = '<li><span>First stop in Section ' + rule.secNum + ' — place at the very front of the tub!</span></li>';
   }
 
   // Build AFTER list
@@ -706,7 +715,7 @@ function runTubLookup(rawQuery) {
     nextCount++;
   }
   if (afterEl.children.length === 0) {
-    afterEl.innerHTML = '<li><span>Very last stop at the back of Section ' + rule.secNum + ' tub!</span></li>';
+    afterEl.innerHTML = '<li><span>Last stop in Section ' + rule.secNum + ' — place at the very back of the tub!</span></li>';
   }
 
   renderSectionLadder(rule.secNum, idx);
@@ -847,7 +856,7 @@ function parseLine(rawText) {
   var text = (rawText || '').trim();
   if (!text) return null;
 
-  var location = 'tub';
+  var location = 'back';
   var backRegex = new RegExp('\\b(back|large|rear|box)\\b', 'i');
   var frontRegex = new RegExp('\\b(front|seat|small box|sm box)\\b', 'i');
   var tubRegex = new RegExp('\\b(tub|flat|small flat|satchel|letter)\\b', 'i');
@@ -871,10 +880,10 @@ function parseLine(rawText) {
     if (num !== null) {
       score += (rule.dir === 'desc' ? (1000 - num) : num) * 0.001;
     }
-    return { address: text, section: rule.section, secNum: rule.secNum, location: location, score: score, matched: true, done: false };
+    return { id: 'p_' + (parcelUidCounter++), address: text, section: rule.section, secNum: rule.secNum, location: location, score: score, matched: true, done: false };
   }
 
-  return { address: text, section: 'Check Sector', secNum: 99, location: location, score: 999999, matched: false, done: false };
+  return { id: 'p_' + (parcelUidCounter++), address: text, section: 'Check Sector', secNum: 99, location: location, score: 999999, matched: false, done: false };
 }
 
 function addSingleParcel() {
@@ -882,7 +891,7 @@ function addSingleParcel() {
   var val = input.value.trim();
   if (!val) return;
   var locEl = document.querySelector('input[name="quickLoc"]:checked');
-  var loc = locEl ? locEl.value : 'tub';
+  var loc = locEl ? locEl.value : 'back';
   var item = parseLine(val + ' ' + loc);
   if (item) {
     parcels.push(item);
@@ -1081,6 +1090,8 @@ function renderList() {
 
     var li = document.createElement('li');
     li.className = 'delivery-row';
+    if (!p.id) p.id = 'p_' + (parcelUidCounter++);
+    li.setAttribute('data-id', p.id);
     if (p.done) li.style.opacity = '0.4';
     
     var upBtn = (origIdx > 0) ? '<button class="icon-btn" onclick="moveItem(' + origIdx + ', -1)" title="Move Up">⬆️</button>' : '';
@@ -1089,19 +1100,23 @@ function renderList() {
     var checkIcon = p.done ? '✅' : '⬜';
 
     li.innerHTML =
-      '<div class="row-main" style="display: flex; gap: 8px; align-items: center; cursor: pointer;" onclick="toggleDone(' + origIdx + ')">' +
-        '<span style="font-size: 1.2rem;">' + checkIcon + '</span>' +
-        '<span class="seq-num" style="' + (p.done ? 'background: #94a3b8;' : '') + '">' + (origIdx + 1) + '</span>' +
-        '<div style="' + (p.done ? 'text-decoration: line-through;' : '') + '">' +
-          '<div class="addr-title">' + p.address + '</div>' +
-          '<div class="addr-sub">' + p.section + '</div>' +
+      '<div class="row-top">' +
+        '<div class="row-main" onclick="toggleDone(' + origIdx + ')">' +
+          '<span style="font-size: 1.15rem; flex-shrink:0;">' + checkIcon + '</span>' +
+          '<span class="seq-num" style="' + (p.done ? 'background: #94a3b8;' : '') + '">' + (origIdx + 1) + '</span>' +
+          '<div class="addr-block" style="' + (p.done ? 'text-decoration: line-through;' : '') + '">' +
+            '<div class="addr-title">' + p.address + '</div>' +
+          '</div>' +
         '</div>' +
+        '<span class="badge-loc ' + locClasses[p.location] + '" onclick="cycleLocation(' + origIdx + ')" title="Tap to change location">' + locNames[p.location] + '</span>' +
       '</div>' +
-      '<div class="actions-wrapper">' +
-        upBtn + dnBtn +
-        '<span class="badge-loc ' + locClasses[p.location] + '" onclick="cycleLocation(' + origIdx + ')">' + locNames[p.location] + '</span>' +
-        '<button class="icon-btn" onclick="editAddress(' + origIdx + ')">✏️</button>' +
-        '<button class="icon-btn" onclick="deleteItem(' + origIdx + ')">✕</button>' +
+      '<div class="row-bottom">' +
+        '<div class="addr-sub">' + p.section + '</div>' +
+        '<div class="actions-wrapper">' +
+          upBtn + dnBtn +
+          '<button class="icon-btn" onclick="editAddress(' + origIdx + ')" title="Edit">✏️</button>' +
+          '<button class="icon-btn" onclick="deleteItem(' + origIdx + ')" title="Delete">✕</button>' +
+        '</div>' +
       '</div>';
     list.appendChild(li);
   }
@@ -1116,10 +1131,60 @@ function toggleDone(idx) {
 
 function moveItem(idx, dir) {
   if (idx + dir < 0 || idx + dir >= parcels.length) return;
+
+  // FLIP Step 1: Record initial top positions of all visible delivery rows
+  var prevPositions = {};
+  var rows = document.querySelectorAll('.delivery-row[data-id]');
+  for (var r = 0; r < rows.length; r++) {
+    var rowId = rows[r].getAttribute('data-id');
+    prevPositions[rowId] = rows[r].getBoundingClientRect().top;
+  }
+
+  var movedId = parcels[idx].id;
+
+  // Swap in array
   var temp = parcels[idx];
   parcels[idx] = parcels[idx + dir];
   parcels[idx + dir] = temp;
+
+  // Re-render DOM in new order
   renderList();
+
+  // FLIP Step 2: Measure new positions and animate the delta
+  var newRows = document.querySelectorAll('.delivery-row[data-id]');
+  for (var n = 0; n < newRows.length; n++) {
+    var rEl = newRows[n];
+    var id = rEl.getAttribute('data-id');
+    if (prevPositions.hasOwnProperty(id)) {
+      var deltaY = prevPositions[id] - rEl.getBoundingClientRect().top;
+      if (deltaY !== 0) {
+        // Invert: immediately shift element to its old position
+        rEl.style.transform = 'translateY(' + deltaY + 'px)';
+        rEl.style.transition = 'none';
+        
+        // Add a subtle accent glow to the one the driver moved
+        if (id === movedId) {
+          rEl.style.borderColor = 'var(--primary-accent)';
+          rEl.style.boxShadow = '0 0 0 2px rgba(37,99,235,0.2)';
+        }
+
+        // Play: trigger smooth animation to final resting position
+        (function(el) {
+          requestAnimationFrame(function() {
+            requestAnimationFrame(function() {
+              el.style.transition = 'transform 220ms cubic-bezier(0.2, 0, 0, 1), box-shadow 400ms ease, border-color 400ms ease';
+              el.style.transform = '';
+              setTimeout(function() {
+                el.style.transition = '';
+                el.style.borderColor = '';
+                el.style.boxShadow = '';
+              }, 400);
+            });
+          });
+        })(rEl);
+      }
+    }
+  }
 }
 
 function saveUndoSnapshot(msg) {
@@ -1286,7 +1351,7 @@ async function captureAndProcessFrame() {
     var matchedItem = null;
 
     var locEl = document.querySelector('input[name="quickLoc"]:checked');
-    var loc = locEl ? locEl.value : 'tub';
+    var loc = locEl ? locEl.value : 'back';
 
     for (var l = 0; l < lines.length; l++) {
       var candidate = lines[l].trim();
