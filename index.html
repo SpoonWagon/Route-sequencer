@@ -143,6 +143,15 @@
   .badge-back { background: var(--back-bg); color: var(--back-color); border: 1px solid #fecaca; }
   .icon-btn { background: #f8fafc; border: 1px solid var(--border); padding: 4px 7px; font-size: 0.8rem; border-radius: 5px; cursor: pointer; }
   .empty-state { text-align: center; color: var(--muted); padding: 24px; font-size: 0.88rem; }
+
+  .sec-filter-bar { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 12px; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+  .sec-filter-btn { padding: 6px 12px; border-radius: 20px; border: 1px solid #cbd5e1; font-size: 0.76rem; font-weight: 700; background: #f8fafc; cursor: pointer; color: #334155; white-space: nowrap; transition: all 0.15s; }
+  .sec-filter-btn.active { background: var(--primary-accent); color: white; border-color: var(--primary-accent); box-shadow: 0 2px 4px rgba(37,99,235,0.2); }
+  .sec-group-header { background: #1e293b; color: #ffffff; padding: 9px 12px; border-radius: 8px; margin: 14px 0 8px 0; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: 800; letter-spacing: 0.3px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  .sec-group-header:first-child { margin-top: 2px; }
+  .sec-group-actions { display: flex; gap: 6px; align-items: center; }
+  .sec-clear-btn { background: rgba(255,255,255,0.15); color: #f8fafc; border: 1px solid rgba(255,255,255,0.25); padding: 4px 9px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .sec-clear-btn:hover, .sec-clear-btn:active { background: #ef4444; border-color: #ef4444; color: white; }
 </style>
 </head>
 <body>
@@ -259,7 +268,10 @@
       <div class="card">
         <h2>
           <span>Manifest & Drop Sequence</span>
-          <button class="btn secondary" style="font-size: 0.75rem; padding: 5px 10px;" onclick="copyManifest()">Copy List</button>
+          <div style="display:flex; gap:6px;">
+            <button class="btn secondary" style="font-size: 0.74rem; padding: 5px 9px;" onclick="clearDoneItems()" title="Remove all ticked-off parcels">🧹 Clear ✅</button>
+            <button class="btn secondary" style="font-size: 0.74rem; padding: 5px 9px;" onclick="copyManifest()">Copy List</button>
+          </div>
         </h2>
 
         <div class="stats-summary">
@@ -278,11 +290,13 @@
         </div>
 
         <div class="view-filters">
-          <button class="filter-btn active" onclick="setFilter('all', this)">All Stops</button>
-          <button class="filter-btn" onclick="setFilter('tub', this)">Tub Only</button>
-          <button class="filter-btn" onclick="setFilter('front', this)">Front Seat Only</button>
-          <button class="filter-btn" onclick="setFilter('back', this)">Back Only</button>
+          <button class="filter-btn active" onclick="setFilter('all', this)">All Locations</button>
+          <button class="filter-btn" onclick="setFilter('tub', this)">🧺 Tub Only</button>
+          <button class="filter-btn" onclick="setFilter('front', this)">📦 Front Seat</button>
+          <button class="filter-btn" onclick="setFilter('back', this)">🚛 Back Only</button>
         </div>
+
+        <div class="sec-filter-bar" id="manifestSecFilters" style="display:none;"></div>
 
         <ul class="item-list" id="deliveryList">
           <div class="empty-state">No parcels added yet.</div>
@@ -399,11 +413,11 @@ var ROUTE_RULES = [
   { id: "s4_auv", secNum: 4, match: /auvergne/i, title: "Auvergne Way", section: "Sec 4: Auvergne Way", score: 4070, dir: 'asc', note: "Low to High" },
   { id: "s4_mar3", secNum: 4, match: /marra/i, condition: function(n) { return n !== null && n >= 52 && n <= 60; }, title: "Marra Dr (60–52)", section: "Sec 4: Marra Dr", score: 4075, dir: 'desc', note: "High to Low" },
   { id: "s4_cub", secNum: 4, match: /cubbaroo/i, title: "Cubbaroo St", section: "Sec 4: Cubbaroo St", score: 4080, dir: 'desc', note: "High to Low" },
-  { id: "s4_mar4", secNum: 4, match: /marra/i, condition: function(n) { return n !== null && n >= 28 && n <= 50; }, title: "Marra Dr (50–28)", section: "Sec 4: Marra Dr", score: 4085, dir: 'desc', note: "High to Low" },
-  { id: "s4_bul", secNum: 4, match: /bular/i, title: "Bular Cl", section: "Sec 4: Bular Cl", score: 4090, dir: 'asc', note: "Low to High" },
-  { id: "s4_ret", secNum: 4, match: /retreat/i, title: "Retreat Cl", section: "Sec 4: Retreat Cl", score: 4100, dir: 'asc', note: "Low to High" },
+  { id: "s4_mar4", secNum: 4, match: /marra/i, condition: function(n) { return n !== null && n >= 26 && n <= 50; }, title: "Marra Dr (50–26)", section: "Sec 4: Marra Dr (50-26)", score: 4085, dir: 'desc', note: "High to Low (after Cubbaroo, before Retreat & Bular)" },
+  { id: "s4_ret", secNum: 4, match: /retreat/i, title: "Retreat Cl", section: "Sec 4: Retreat Cl", score: 4090, dir: 'asc', note: "Low to High (before Bular Cl)" },
+  { id: "s4_bul", secNum: 4, match: /bular/i, title: "Bular Cl", section: "Sec 4: Bular Cl", score: 4100, dir: 'asc', note: "Low to High (after Retreat Cl)" },
   { id: "s4_moo", secNum: 4, match: /moonagee/i, title: "Moonagee Crest", section: "Sec 4: Moonagee Crest", score: 4110, dir: 'asc', note: "Low to High" },
-  { id: "s4_mar5", secNum: 4, match: /marra/i, condition: function(n) { return n !== null && n >= 18 && n <= 26; }, title: "Marra Dr (26–18)", section: "Sec 4: Marra Dr", score: 4120, dir: 'desc', note: "High to Low" },
+  { id: "s4_mar5", secNum: 4, match: /marra/i, condition: function(n) { return n !== null && n >= 18 && n <= 25; }, title: "Marra Dr (25–18)", section: "Sec 4: Marra Dr (25-18)", score: 4120, dir: 'desc', note: "High to Low (after Moonagee)" },
   { id: "s4_mai", secNum: 4, match: /maita/i, title: "Maita Way", section: "Sec 4: Maita Way", score: 4130, dir: 'desc', note: "High to Low" },
   { id: "s4_ban_exit", secNum: 4, match: /banyula/i, condition: function(n) { return n !== null && n <= 13; }, title: "Banyula Dr (13-1)", section: "Sec 4: Banyula Dr", score: 4140, dir: 'desc', note: "High to Low" },
   { id: "s4_sea", secNum: 4, match: /seasound/i, title: "Seasound Cl", section: "Sec 4: Seasound Cl", score: 4150, dir: 'asc', note: "Low to High" },
@@ -584,12 +598,12 @@ function switchMode(mode) {
 }
 
 function extractNumber(text) {
-  // Check for "Unit X Y Street"
-  var unitWordMatch = text.match(/unit\s*\d+\s+(\d+)/i);
+  // Check for "Unit X Y Street" or "U X, Y Street" or "U X Y Street"
+  var unitWordMatch = text.match(/^(?:unit|u)\s*\d+[\s,\/]+(\d+)/i);
   if (unitWordMatch) return parseInt(unitWordMatch[1], 10);
   
-  // Check for "X/Y Street"
-  var unitMatch = text.match(/^\d+\/(\d+)/);
+  // Check for "X/Y Street" or "X, Y Street"
+  var unitMatch = text.match(/^\d+[\/,]\s*(\d+)/);
   if (unitMatch) return parseInt(unitMatch[1], 10);
   
   // Check for standard leading number (ignores letters like 'A', 'B')
@@ -604,7 +618,7 @@ function findMatchingRuleIndex(rawText) {
   for (var i = 0; i < ROUTE_RULES.length; i++) {
     var rule = ROUTE_RULES[i];
     if (rule.match.test(text)) {
-      if (rule.condition && !rule.condition(num)) continue;
+      if (rule.condition && !rule.condition(num, text)) continue;
       return i;
     }
   }
@@ -855,12 +869,12 @@ function parseLine(rawText) {
     var rule = ROUTE_RULES[idx];
     var score = rule.score;
     if (num !== null) {
-      score += (rule.dir === 'desc' ? (1000 - num) : num) * 0.01;
+      score += (rule.dir === 'desc' ? (1000 - num) : num) * 0.001;
     }
-    return { address: text, section: rule.section, location: location, score: score, matched: true, done: false };
+    return { address: text, section: rule.section, secNum: rule.secNum, location: location, score: score, matched: true, done: false };
   }
 
-  return { address: text, section: 'Check Sector', location: location, score: 999999, matched: false, done: false };
+  return { address: text, section: 'Check Sector', secNum: 99, location: location, score: 999999, matched: false, done: false };
 }
 
 function addSingleParcel() {
@@ -889,94 +903,133 @@ function loadBulkData() {
       parcels = [];
   }
   
-  for (var i = 0; i < lines.length; i++) {
-    var item = parseLine(lines[i]);
-    if (item) parcels.push(item);
-  }
-  textarea.value = ''; // clear textarea so we don't double click
-  recalculate();
-}
+  for (var // Section Labels Lookup
+var SECTION_LABELS = {
+  1: "Sec 1: Wallabi Pt",
+  2: "Sec 2: Shantull",
+  3: "Sec 3: Medowie",
+  4: "Sec 4: Marra Estate",
+  5: "Sec 5: Molong",
+  6: "Sec 6: Waterman",
+  7: "Sec 7: Old Bar Rd",
+  8: "Sec 8: Clerke/Hall",
+  9: "Sec 9: Forest/Wyden",
+  10: "Sec 10: Albatross",
+  11: "Sec 11: Bluehaven 2",
+  12: "Sec 12: Wyden",
+  99: "Unmatched / Check Sector"
+};
 
-function recalculate() {
-  parcels.sort(function(a, b) { return a.score - b.score; });
-  updateStats();
+var currentSectionFilter = 'all';
+// Undo snapshot for single delete or bulk section clear
+var undoSnapshot = null;
+var undoMessage = "";
+
+function setSectionFilter(secVal) {
+  currentSectionFilter = secVal;
   renderList();
 }
 
-function updateStats() {
-  var tub = 0, front = 0, back = 0;
+function renderSectionFilterBar() {
+  var bar = document.getElementById('manifestSecFilters');
+  if (!bar) return;
+  if (parcels.length === 0) {
+    bar.style.display = 'none';
+    bar.innerHTML = '';
+    return;
+  }
+
+  // Count parcels per section (respecting location filter if active)
+  var secCounts = {};
+  var secOrder = [];
   for (var i = 0; i < parcels.length; i++) {
-    if (parcels[i].location === 'tub') tub++;
-    if (parcels[i].location === 'front') front++;
-    if (parcels[i].location === 'back') back++;
+    if (currentFilter !== 'all' && parcels[i].location !== currentFilter) continue;
+    var sNum = parcels[i].secNum || 99;
+    if (!secCounts[sNum]) {
+      secCounts[sNum] = 0;
+      secOrder.push(sNum);
+    }
+    secCounts[sNum]++;
   }
-  document.getElementById('countTub').innerText = tub;
-  document.getElementById('countFront').innerText = front;
-  document.getElementById('countBack').innerText = back;
-}
 
-function setFilter(filter, btn) {
-  currentFilter = filter;
-  var buttons = document.querySelectorAll('.filter-btn');
-  for (var i = 0; i < buttons.length; i++) buttons[i].classList.remove('active');
-  if (btn) btn.classList.add('active');
-  renderList();
-}
-
-function cycleLocation(index) {
-  var p = parcels[index];
-  if (!p) return;
-  if (p.location === 'tub') p.location = 'front';
-  else if (p.location === 'front') p.location = 'back';
-  else p.location = 'tub';
-  updateStats();
-  renderList();
-}
-
-function editAddress(index) {
-  var current = parcels[index].address;
-  var updated = prompt('Edit Address:', current);
-  if (updated && updated.trim() && updated !== current) {
-    parcels[index] = parseLine(updated.trim() + ' ' + parcels[index].location);
-    recalculate();
+  // If currentSectionFilter is no longer present in the list, reset to 'all'
+  if (currentSectionFilter !== 'all' && !secCounts[currentSectionFilter]) {
+    currentSectionFilter = 'all';
   }
+
+  bar.style.display = 'flex';
+  var htmlStr = '<button class="sec-filter-btn ' + (currentSectionFilter === 'all' ? 'active' : '') + '" onclick="setSectionFilter(\'all\')">All Sections (' + parcels.length + ')</button>';
+  
+  secOrder.sort(function(a, b) { return a - b; });
+  for (var j = 0; j < secOrder.length; j++) {
+    var s = secOrder[j];
+    var label = SECTION_LABELS[s] || ('Sec ' + s);
+    var activeCls = (currentSectionFilter === s) ? 'active' : '';
+    htmlStr += '<button class="sec-filter-btn ' + activeCls + '" onclick="setSectionFilter(' + s + ')">' + label + ' (' + secCounts[s] + ')</button>';
+  }
+  bar.innerHTML = htmlStr;
 }
-
-function deleteItem(index) {
-  parcels.splice(index, 1);
-  recalculate();
-}
-
-
-// Undo buffer for deleted items
-var lastDeleted = null;
 
 function renderList() {
+  renderSectionFilterBar();
   var list = document.getElementById('deliveryList');
   list.innerHTML = '';
   
-  if (lastDeleted) {
+  if (undoSnapshot) {
     var undoBanner = document.createElement('div');
     undoBanner.style = "background: #fef9c3; border: 1px solid #fde047; padding: 8px 12px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: 700; color: #a16207;";
-    undoBanner.innerHTML = '<span>Item deleted</span> <button onclick="undoDelete()" style="background: white; border: 1px solid #ca8a04; padding: 4px 10px; border-radius: 6px; cursor: pointer; color: #a16207; font-weight: bold;">Undo</button>';
+    undoBanner.innerHTML = '<span>' + undoMessage + '</span> <button onclick="undoAction()" style="background: white; border: 1px solid #ca8a04; padding: 4px 10px; border-radius: 6px; cursor: pointer; color: #a16207; font-weight: bold;">Undo</button>';
     list.appendChild(undoBanner);
   }
 
   var filtered = [];
   for (var i = 0; i < parcels.length; i++) {
-    if (currentFilter === 'all' || parcels[i].location === currentFilter) {
-      filtered.push({ item: parcels[i], idx: i });
+    var locMatch = (currentFilter === 'all' || parcels[i].location === currentFilter);
+    var secNum = parcels[i].secNum || 99;
+    var secMatch = (currentSectionFilter === 'all' || secNum === currentSectionFilter);
+    if (locMatch && secMatch) {
+      filtered.push({ item: parcels[i], idx: i, secNum: secNum });
     }
   }
   if (filtered.length === 0) {
     list.innerHTML += '<div class="empty-state">No parcels match this view.</div>';
     return;
   }
+
   var locNames = { tub: '🧺 Tub', front: '📦 Front', back: '🚛 Back' };
   var locClasses = { tub: 'badge-tub', front: 'badge-front', back: 'badge-back' };
+  var lastSecRendered = null;
+
   for (var j = 0; j < filtered.length; j++) {
     var p = filtered[j].item;
     var origIdx = filtered[j].idx;
+    var sNum = filtered[j].secNum;
+
+    // Insert Section Partition Header whenever section changes
+    if (sNum !== lastSecRendered) {
+      lastSecRendered = sNum;
+      var secTotal = 0;
+      var secRemaining = 0;
+      for (var k = 0; k < filtered.length; k++) {
+        if (filtered[k].secNum === sNum) {
+          secTotal++;
+          if (!filtered[k].item.done) secRemaining++;
+        }
+      }
+      var secTitle = SECTION_LABELS[sNum] || ('Section ' + sNum);
+      var hdrLi = document.createElement('li');
+      hdrLi.className = 'sec-group-header';
+      hdrLi.innerHTML =
+        '<div>' +
+          '<span>' + secTitle.toUpperCase() + '</span>' +
+          '<span style="font-weight:500; font-size:0.76rem; color:#cbd5e1; margin-left:8px;">(' + secRemaining + ' left / ' + secTotal + ' total)</span>' +
+        '</div>' +
+        '<div class="sec-group-actions">' +
+          '<button class="sec-clear-btn" onclick="clearSection(' + sNum + ')" title="Clear this section from manifest">✓ Clear Sec ' + (sNum === 99 ? '?' : sNum) + '</button>' +
+        '</div>';
+      list.appendChild(hdrLi);
+    }
+
     var li = document.createElement('li');
     li.className = 'delivery-row';
     if (p.done) li.style.opacity = '0.4';
@@ -989,6 +1042,83 @@ function renderList() {
     li.innerHTML =
       '<div class="row-main" style="display: flex; gap: 8px; align-items: center; cursor: pointer;" onclick="toggleDone(' + origIdx + ')">' +
         '<span style="font-size: 1.2rem;">' + checkIcon + '</span>' +
+        '<span class="seq-num" style="' + (p.done ? 'background: #94a3b8;' : '') + '">' + (origIdx + 1) + '</span>' +
+        '<div style="' + (p.done ? 'text-decoration: line-through;' : '') + '">' +
+          '<div class="addr-title">' + p.address + '</div>' +
+          '<div class="addr-sub">' + p.section + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="actions-wrapper">' +
+        upBtn + dnBtn +
+        '<span class="badge-loc ' + locClasses[p.location] + '" onclick="cycleLocation(' + origIdx + ')">' + locNames[p.location] + '</span>' +
+        '<button class="icon-btn" onclick="editAddress(' + origIdx + ')">✏️</button>' +
+        '<button class="icon-btn" onclick="deleteItem(' + origIdx + ')">✕</button>' +
+      '</div>';
+    list.appendChild(li);
+  }
+}
+
+function toggleDone(idx) {
+  if (parcels[idx]) {
+    parcels[idx].done = !parcels[idx].done;
+    renderList();
+  }
+}
+
+function moveItem(idx, dir) {
+  if (idx + dir < 0 || idx + dir >= parcels.length) return;
+  var temp = parcels[idx];
+  parcels[idx] = parcels[idx + dir];
+  parcels[idx + dir] = temp;
+  renderList();
+}
+
+function saveUndoSnapshot(msg) {
+  undoSnapshot = parcels.map(function(p) { return Object.assign({}, p); });
+  undoMessage = msg;
+}
+
+function undoAction() {
+  if (undoSnapshot) {
+    parcels = undoSnapshot;
+    undoSnapshot = null;
+    undoMessage = "";
+    updateStats();
+    renderList();
+  }
+}
+
+function deleteItem(index) {
+  saveUndoSnapshot("Deleted: " + parcels[index].address);
+  parcels.splice(index, 1);
+  updateStats();
+  renderList();
+}
+
+function clearSection(secNum) {
+  var count = parcels.filter(function(p) { return (p.secNum || 99) === secNum; }).length;
+  if (!count) return;
+  var secLabel = SECTION_LABELS[secNum] || ('Section ' + secNum);
+  saveUndoSnapshot("Cleared " + secLabel + " (" + count + " stops)");
+  parcels = parcels.filter(function(p) { return (p.secNum || 99) !== secNum; });
+  if (currentSectionFilter === secNum) currentSectionFilter = 'all';
+  updateStats();
+  renderList();
+}
+
+function clearDoneItems() {
+  var doneCount = parcels.filter(function(p) { return p.done; }).length;
+  if (doneCount === 0) {
+    alert("No ticked-off (✅) stops to clear yet. Tap a parcel to mark it ✅ first, or use the '✓ Clear Sec' button on any section header.");
+    return;
+  }
+  saveUndoSnapshot("Cleared " + doneCount + " completed stop(s)");
+  parcels = parcels.filter(function(p) { return !p.done; });
+  updateStats();
+  renderList();
+}
+
+con + '</span>' +
         '<span class="seq-num" style="' + (p.done ? 'background: #94a3b8;' : '') + '">' + (origIdx + 1) + '</span>' +
         '<div style="' + (p.done ? 'text-decoration: line-through;' : '') + '">' +
           '<div class="addr-title">' + p.address + '</div>' +
