@@ -160,6 +160,42 @@
   .badge-back { background: var(--back-bg); color: var(--back-color); border: 1px solid #fecaca; }
   .icon-btn { background: #f8fafc; border: 1px solid var(--border); padding: 4px 8px; font-size: 0.76rem; border-radius: 6px; cursor: pointer; line-height: 1.1; }
   .empty-state { text-align: center; color: var(--muted); padding: 24px; font-size: 0.88rem; }
+
+  /* Drag and Drop styling */
+  .drag-handle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 26px;
+    background: #f1f5f9;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+    font-size: 1rem;
+    color: #475569;
+    flex-shrink: 0;
+  }
+  .drag-handle:active {
+    cursor: grabbing;
+    background: #e2e8f0;
+  }
+  .delivery-row.is-dragging {
+    opacity: 0.65;
+    background: #eff6ff !important;
+    border: 2px dashed #2563eb !important;
+    box-shadow: 0 8px 18px rgba(37,99,235,0.25) !important;
+    z-index: 99;
+  }
+  .delivery-row.drag-over-top {
+    border-top: 3px solid #2563eb !important;
+  }
+  .delivery-row.drag-over-bottom {
+    border-bottom: 3px solid #2563eb !important;
+  }
+
 </style>
 </head>
 <body>
@@ -1116,10 +1152,12 @@ function renderList() {
           upBtn + dnBtn +
           '<button class="icon-btn" onclick="editAddress(' + origIdx + ')" title="Edit">✏️</button>' +
           '<button class="icon-btn" onclick="deleteItem(' + origIdx + ')" title="Delete">✕</button>' +
+          '<span class="drag-handle" title="Hold & drag to move stop">☰</span>' +
         '</div>' +
       '</div>';
     list.appendChild(li);
   }
+  initDragAndDrop();
 }
 
 function toggleDone(idx) {
@@ -1386,6 +1424,180 @@ async function captureAndProcessFrame() {
     status.style.color = "#b91c1c";
     status.innerText = "Scan error: " + err.message;
     btn.disabled = false;
+  }
+}
+
+
+// TOUCH & MOUSE DRAG-AND-DROP GRAB HANDLE
+var activeDragRow = null;
+var activeDragId = null;
+var dragCurrentTarget = null;
+var dragInsertBefore = false;
+
+function initDragAndDrop() {
+  var list = document.getElementById('deliveryList');
+  if (!list) return;
+
+  var handles = list.querySelectorAll('.drag-handle');
+  for (var i = 0; i < handles.length; i++) {
+    (function(handle) {
+      var row = handle.closest('.delivery-row');
+      if (!row) return;
+
+      // Pointer / Touch listener
+      handle.onpointerdown = function(e) {
+        // Prevent triggering default scrolling while dragging the handle
+        e.preventDefault();
+        activeDragRow = row;
+        activeDragId = row.getAttribute('data-id');
+        activeDragRow.classList.add('is-dragging');
+
+        // Capture pointer events on the handle
+        try { handle.setPointerCapture(e.pointerId); } catch(err) {}
+
+        handle.onpointermove = function(moveEvent) {
+          if (!activeDragRow) return;
+          moveEvent.preventDefault();
+
+          // Identify element directly under finger
+          var elUnder = document.elementFromPoint(moveEvent.clientX, moveEvent.clientY);
+          if (!elUnder) return;
+
+          var targetRow = elUnder.closest('.delivery-row');
+          
+          // Clear previous highlights
+          clearDragOverHighlights();
+
+          if (targetRow && targetRow !== activeDragRow) {
+            dragCurrentTarget = targetRow;
+            var rect = targetRow.getBoundingClientRect();
+            var relY = moveEvent.clientY - rect.top;
+            if (relY < rect.height / 2) {
+              dragInsertBefore = true;
+              targetRow.classList.add('drag-over-top');
+            } else {
+              dragInsertBefore = false;
+              targetRow.classList.add('drag-over-bottom');
+            }
+          } else {
+            dragCurrentTarget = null;
+          }
+        };
+
+        handle.onpointerup = function(upEvent) {
+          handle.onpointermove = null;
+          handle.onpointerup = null;
+          try { handle.releasePointerCapture(upEvent.pointerId); } catch(err) {}
+
+          if (activeDragRow) {
+            activeDragRow.classList.remove('is-dragging');
+          }
+          clearDragOverHighlights();
+
+          if (dragCurrentTarget && activeDragId) {
+            finalizeDragReorder(activeDragId, dragCurrentTarget.getAttribute('data-id'), dragInsertBefore);
+          }
+
+          activeDragRow = null;
+          activeDragId = null;
+          dragCurrentTarget = null;
+        };
+
+        handle.onpointercancel = function() {
+          if (activeDragRow) activeDragRow.classList.remove('is-dragging');
+          clearDragOverHighlights();
+          handle.onpointermove = null;
+          handle.onpointerup = null;
+          activeDragRow = null;
+          activeDragId = null;
+          dragCurrentTarget = null;
+        };
+      };
+    })(handles[i]);
+  }
+}
+
+function clearDragOverHighlights() {
+  var highlighted = document.querySelectorAll('.drag-over-top, .drag-over-bottom');
+  for (var h = 0; h < highlighted.length; h++) {
+    highlighted[h].classList.remove('drag-over-top');
+    highlighted[h].classList.remove('drag-over-bottom');
+  }
+}
+
+function finalizeDragReorder(sourceId, targetId, insertBefore) {
+  if (sourceId === targetId) return;
+
+  var sourceIndex = -1;
+  var targetIndex = -1;
+  for (var i = 0; i < parcels.length; i++) {
+    if (parcels[i].id === sourceId) sourceIndex = i;
+    if (parcels[i].id === targetId) targetIndex = i;
+  }
+
+  if (sourceIndex === -1 || targetIndex === -1) return;
+
+  // Record initial positions for smooth FLIP animation
+  var prevPositions = {};
+  var rows = document.querySelectorAll('.delivery-row[data-id]');
+  for (var r = 0; r < rows.length; r++) {
+    var rowId = rows[r].getAttribute('data-id');
+    prevPositions[rowId] = rows[r].getBoundingClientRect().top;
+  }
+
+  // Remove source item
+  var movedItem = parcels.splice(sourceIndex, 1)[0];
+
+  // Adjust insertion index
+  var newTargetIndex = -1;
+  for (var j = 0; j < parcels.length; j++) {
+    if (parcels[j].id === targetId) {
+      newTargetIndex = j;
+      break;
+    }
+  }
+
+  if (newTargetIndex !== -1) {
+    var finalIndex = insertBefore ? newTargetIndex : newTargetIndex + 1;
+    parcels.splice(finalIndex, 0, movedItem);
+  } else {
+    parcels.push(movedItem);
+  }
+
+  // Re-render
+  renderList();
+
+  // Smooth FLIP animation to new resting position
+  var newRows = document.querySelectorAll('.delivery-row[data-id]');
+  for (var n = 0; n < newRows.length; n++) {
+    var rEl = newRows[n];
+    var id = rEl.getAttribute('data-id');
+    if (prevPositions.hasOwnProperty(id)) {
+      var deltaY = prevPositions[id] - rEl.getBoundingClientRect().top;
+      if (deltaY !== 0) {
+        rEl.style.transform = 'translateY(' + deltaY + 'px)';
+        rEl.style.transition = 'none';
+
+        if (id === sourceId) {
+          rEl.style.borderColor = 'var(--primary-accent)';
+          rEl.style.boxShadow = '0 0 0 2px rgba(37,99,235,0.2)';
+        }
+
+        (function(el) {
+          requestAnimationFrame(function() {
+            requestAnimationFrame(function() {
+              el.style.transition = 'transform 240ms cubic-bezier(0.2, 0, 0, 1), box-shadow 400ms ease, border-color 400ms ease';
+              el.style.transform = '';
+              setTimeout(function() {
+                el.style.transition = '';
+                el.style.borderColor = '';
+                el.style.boxShadow = '';
+              }, 400);
+            });
+          });
+        })(rEl);
+      }
+    }
   }
 }
 
